@@ -1,0 +1,19 @@
+import { createRoot } from 'react-dom/client'
+import './sw-registration.js'
+import '@fontsource/mali/thai-400.css'
+import '@fontsource/mali/latin-400.css'
+import '@fontsource/mali/thai-600.css'
+import '@fontsource/mali/latin-600.css'
+import '@fontsource/mali/thai-700.css'
+import '@fontsource/mali/latin-700.css'
+import './index.css'
+import App from './App.jsx'
+// ใช้ HashRouter แทน BrowserRouter เพราะ GitHub Pages ไม่รองรับการรีเฟรชหน้าย่อย
+// (URL จะเป็นแบบ .../#/diary แทน .../diary)
+import { HashRouter } from 'react-router-dom'
+
+createRoot(document.getElementById('root')).render(
+  <HashRouter>
+    <App />
+  </HashRouter>,
+)

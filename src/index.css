@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  background: #E2EDF5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply font-sans text-ink;
+}
+
+/* ===== ฉาก: ท้องฟ้าเปลี่ยนตามเวลาจริง ===== */
+.scene { background: #BFE3F5; }
+.scene-evening { background: #F7C8A6; }
+.scene-night { background: #2A3B6B; }
+
+.grass { background: #8CCB6E; box-shadow: inset 0 6px 0 #74B957; }
+.scene-night .grass { background: #3F6B4C; box-shadow: inset 0 6px 0 #355C40; }
+
+.sky-sun { background: #FFD45C; }
+.scene-evening .sky-sun { background: #FF9C5B; }
+.scene-night .sky-sun { background: #F4F0CF; box-shadow: inset -10px -4px 0 #DCD6A8; }
+
+.star { position: absolute; width: 4px; height: 4px; border-radius: 9999px; background: #F4F0CF; }
+
+/* หางของลูกโป่งอิโมจิ: สามเหลี่ยมชี้ลงซ้าย (ไปทางหัวน้องหมา) */
+.bubble-tail { clip-path: polygon(25% 0, 100% 0, 0 100%); }
+
+/* ===== ปุ่มแบบกดยุบได้ (อยู่ใน layer components เพื่อให้ class ของ Tailwind เปลี่ยนสีขอบทับได้) ===== */
+@layer components {
+  .care-btn {
+    border: 2px solid #DCE7F0;
+    border-bottom-width: 6px;
+    transition: transform 80ms, border-bottom-width 80ms;
+  }
+  .care-btn:active:not(:disabled) {
+    transform: translateY(4px);
+    border-bottom-width: 2px;
+  }
+}
+
+:focus-visible {
+  outline: 3px solid #4AA3DF;
+  outline-offset: 2px;
+}
+
+/* ===== Animation (ปิดอัตโนมัติถ้าผู้ใช้ตั้งค่าลดการเคลื่อนไหว) ===== */
+@media (prefers-reduced-motion: no-preference) {
+  .dog-breathe {
+    transform-origin: 50% 100%;
+    animation: breathe 2.6s ease-in-out infinite;
+  }
+  .tail-wag {
+    transform-box: fill-box;
+    transform-origin: 0% 100%;
+    animation: wag 1.1s ease-in-out infinite alternate;
+  }
+  .tail-wag.fast { animation-duration: 0.28s; }
+  .dog-hop { animation: hop 0.45s ease-out; }
+  .heart-float {
+    transform-box: fill-box;
+    animation: heart 1.8s ease-in-out infinite;
+  }
+  .pop-up { animation: pop-up 0.9s ease-out forwards; }
+  .toast-in { animation: toast-in 0.35s ease-out; }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.015); }
+}
+@keyframes wag {
+  from { transform: rotate(-12deg); }
+  to { transform: rotate(14deg); }
+}
+@keyframes hop {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-16px); }
+  100% { transform: translateY(0); }
+}
+@keyframes heart {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(-6px); opacity: 0.6; }
+}
+@keyframes pop-up {
+  from { transform: translate(-50%, 0); opacity: 1; }
+  to { transform: translate(-50%, -36px); opacity: 0; }
+}
+@keyframes toast-in {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
