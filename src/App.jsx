@@ -104,9 +104,9 @@ export default function App() {
     persist(savePet(next))
   }
 
-  function adopt(name) {
+  function adopt({ name, species }) {
     const t = Date.now()
-    const next = createPet({ name }, t)
+    const next = createPet({ name, species }, t)
     const entry = makeDiaryEntry('adopt', `รับ ${name} มาเลี้ยง`, t)
     setPet(next)
     setNow(t)

@@ -1,23 +1,18 @@
-import Dog from './pets/Dog'
+import PetAvatar from './pets/PetAvatar'
 import { getTimeOfDay } from '../petLogic'
-
-// ตัววาดของสัตว์แต่ละชนิด (เพิ่มชนิดใหม่ตรงนี้)
-const RENDERERS = {
-  dog: Dog,
-}
+import { getSpecies } from '../species'
 
 // ดาวตอนกลางคืน (ตำแหน่งเป็น %)
 const STARS = [
   [12, 14], [28, 30], [44, 10], [70, 22], [86, 36], [58, 40], [20, 46],
 ]
 
-// ฉากท้องฟ้า + สนามหญ้า + สัตว์เลี้ยง (อิโมจิอารมณ์อยู่ในตัววาดสัตว์ ติดกับหัวน้อง)
-export default function PetScene({ species = 'dog', face, level, scale, hopKey, emoji, moodLabel, now, children }) {
+// ฉากท้องฟ้า + สนามหญ้า + สัตว์เลี้ยง (ท้องฟ้าเปลี่ยนตามเวลาจริง: กลางวัน/เย็น/กลางคืน)
+export default function PetScene({ species, face, level, scale, hopKey, emoji, moodLabel, now, children, className = 'h-64' }) {
   const time = getTimeOfDay(now)
-  const Pet = RENDERERS[species] ?? Dog
 
   return (
-    <div className={`scene scene-${time} relative h-64 overflow-hidden rounded-[28px]`}>
+    <div className={`scene scene-${time} relative overflow-hidden rounded-[28px] ${className}`}>
       {/* พระอาทิตย์ / พระจันทร์ */}
       <div className="sky-sun absolute right-6 top-6 h-12 w-12 rounded-full" />
       {time === 'night' && STARS.map(([x, y]) => (
@@ -30,7 +25,16 @@ export default function PetScene({ species = 'dog', face, level, scale, hopKey, 
       {/* สัตว์เลี้ยง (ยืนบนหญ้า) */}
       <div className="absolute inset-x-0 bottom-3 flex justify-center">
         <div className="flex w-52 items-end justify-center">
-          <Pet face={face} level={level} scale={scale} hopKey={hopKey} emoji={emoji} moodLabel={moodLabel} />
+          <PetAvatar
+            species={species}
+            face={face}
+            level={level}
+            scale={scale}
+            hopKey={hopKey}
+            emoji={emoji}
+            moodLabel={moodLabel}
+            label={getSpecies(species).label}
+          />
         </div>
       </div>
 

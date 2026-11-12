@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { getSpecies } from '../species'
 
 // ปุ่มจำลองว่าผู้ใช้ปิดแอปไปนานเท่าไหร่ (ใช้ตอนพรีเซนต์)
 const SKIPS = [
@@ -12,6 +13,7 @@ export default function Settings({ pet, onRename, onSimulateAway, onReset }) {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [confirmReset, setConfirmReset] = useState(false)
+  const { label } = getSpecies(pet.species)
 
   function handleRename(e) {
     e.preventDefault()
@@ -31,9 +33,9 @@ export default function Settings({ pet, onRename, onSimulateAway, onReset }) {
 
       {/* เปลี่ยนชื่อ */}
       <section>
-        <h2 className="text-lg font-bold">ชื่อน้องหมา</h2>
+        <h2 className="text-lg font-bold">ชื่อ{label}</h2>
         <form onSubmit={handleRename} className="mt-2 flex gap-2" noValidate>
-          <label htmlFor="rename" className="sr-only">ชื่อน้องหมา</label>
+          <label htmlFor="rename" className="sr-only">ชื่อ{label}</label>
           <input
             id="rename"
             value={name}

@@ -17,7 +17,7 @@ export default function Home({ pet, now, welcome, onDismissWelcome, onCare }) {
 
   const mood = getMood(pet)
   const { level, progress } = getLevel(pet.exp)
-  const stage = getStage(level)
+  const stage = getStage(level, pet.species)
   const moodIsBad = mood.face === 'sad' || mood.face === 'hungry' || mood.face === 'thirsty'
 
   function handleCare(key) {

@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: {
         name: APP_FULL_NAME,
         short_name: APP_NAME,
-        description: 'เลี้ยงน้องหมา ให้อาหาร ให้น้ำ และเล่นด้วยทุกวัน',
+        description: 'เลี้ยงสัตว์ ให้อาหาร ให้น้ำ และเล่นด้วยทุกวัน',
         lang: 'th',
         theme_color: '#BFE3F5',
         background_color: '#F6FAFD',

@@ -1,8 +1,9 @@
 import { ACTIONS } from '../config'
 import { DAY } from '../petLogic'
+import { getSpecies } from '../species'
 
 const ICONS = {
-  adopt: '🐶',
+  adopt: '🐾', // ใช้อิโมจิของชนิดสัตว์แทน (ดูด้านล่าง)
   feed: '🍖',
   water: '💧',
   pat: '🤚',
@@ -26,6 +27,7 @@ function dayLabel(ts, now) {
 const clock = (ts) => new Date(ts).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
 
 export default function Diary({ pet, diary, now }) {
+  const icons = { ...ICONS, adopt: getSpecies(pet.species).emoji }
   const daysTogether = Math.floor((startOfDay(now) - startOfDay(pet.adoptedAt)) / DAY) + 1
 
   // นับจำนวนครั้งที่ดูแลแต่ละแบบ
@@ -70,7 +72,7 @@ export default function Diary({ pet, diary, now }) {
                 <li key={entry.id} className="relative flex items-center gap-3 py-2">
                   <span className="absolute -left-[23px] h-3 w-3 rounded-full border-2 border-white bg-[#4AA3DF]" />
                   <span className="w-12 shrink-0 text-sm tabular-nums text-ink/60">{clock(entry.at)}</span>
-                  <span aria-hidden="true">{ICONS[entry.type] ?? '•'}</span>
+                  <span aria-hidden="true">{icons[entry.type] ?? '•'}</span>
                   <span className="text-[15px]">{entry.text}</span>
                 </li>
               ))}

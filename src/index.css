@@ -25,7 +25,7 @@ body {
 
 .star { position: absolute; width: 4px; height: 4px; border-radius: 9999px; background: #F4F0CF; }
 
-/* หางของลูกโป่งอิโมจิ: สามเหลี่ยมชี้ลงซ้าย (ไปทางหัวน้องหมา) */
+/* หางของลูกโป่งอิโมจิ: สามเหลี่ยมชี้ลงซ้าย (ไปทางหัวน้อง) */
 .bubble-tail { clip-path: polygon(25% 0, 100% 0, 0 100%); }
 
 /* ===== ปุ่มแบบกดยุบได้ (อยู่ใน layer components เพื่อให้ class ของ Tailwind เปลี่ยนสีขอบทับได้) ===== */

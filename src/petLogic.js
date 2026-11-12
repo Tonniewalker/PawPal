@@ -1,5 +1,6 @@
 // ===== Logic ของสัตว์เลี้ยง (ไม่มี React ในไฟล์นี้ เป็นฟังก์ชันคำนวณล้วน ๆ) =====
-import { DATA_VERSION, DECAY_PER_HOUR, DEFAULT_SPECIES, EXP_PER_LEVEL, LOW, START_VALUE } from './config'
+import { DATA_VERSION, DEFAULT_SPECIES, EXP_PER_LEVEL, LOW, START_VALUE } from './config'
+import { getSpecies, isSpecies } from './species'
 
 export const MINUTE = 60 * 1000
 export const HOUR = 60 * MINUTE
@@ -31,18 +32,19 @@ export function normalizePet(raw) {
   return {
     ...raw,
     version: DATA_VERSION,
-    species: typeof raw.species === 'string' ? raw.species : DEFAULT_SPECIES, // รุ่น 1 มีแต่หมา
+    species: isSpecies(raw.species) ? raw.species : DEFAULT_SPECIES, // รุ่น 1 มีแต่หมา
     adoptedAt: typeof raw.adoptedAt === 'number' ? raw.adoptedAt : raw.lastUpdated,
   }
 }
 
-// ลดค่าทั้ง 3 ตามจำนวนชั่วโมงที่ผ่านไป
+// ลดค่าทั้ง 3 ตามจำนวนชั่วโมงที่ผ่านไป (แต่ละชนิดลดเร็วไม่เท่ากัน ดู species.js)
 export function decay(pet, hours) {
+  const rate = getSpecies(pet.species).decay
   return {
     ...pet,
-    food: clamp(pet.food - DECAY_PER_HOUR.food * hours),
-    water: clamp(pet.water - DECAY_PER_HOUR.water * hours),
-    fun: clamp(pet.fun - DECAY_PER_HOUR.fun * hours),
+    food: clamp(pet.food - rate.food * hours),
+    water: clamp(pet.water - rate.water * hours),
+    fun: clamp(pet.fun - rate.fun * hours),
   }
 }
 
@@ -90,11 +92,12 @@ export function getLevel(exp) {
   }
 }
 
-// โตตามเลเวล: ตัวใหญ่ขึ้นเรื่อย ๆ
-export function getStage(level) {
-  if (level >= 6) return { name: 'หมาโตเต็มวัย', scale: 1 }
-  if (level >= 3) return { name: 'หมาวัยรุ่น', scale: 0.9 }
-  return { name: 'ลูกหมา', scale: 0.8 }
+// โตตามเลเวล: ตัวใหญ่ขึ้นเรื่อย ๆ (ชื่อช่วงวัยตามชนิด เช่น ลูกแมว / แมววัยรุ่น)
+export function getStage(level, species) {
+  const { noun } = getSpecies(species)
+  if (level >= 6) return { name: `${noun}โตเต็มวัย`, scale: 1 }
+  if (level >= 3) return { name: `${noun}วัยรุ่น`, scale: 0.9 }
+  return { name: `ลูก${noun}`, scale: 0.8 }
 }
 
 // แปลงมิลลิวินาทีเป็นข้อความ เช่น "2 วัน 5 ชั่วโมง"
