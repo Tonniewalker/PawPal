@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import DogScene from '../components/DogScene'
+import PetScene from '../components/PetScene'
 
 // หน้ารับเลี้ยง: แสดงเองอัตโนมัติเมื่อยังไม่มีข้อมูลน้องหมาใน localStorage
 export default function Adopt({ now, onAdopt }) {
@@ -18,7 +18,7 @@ export default function Adopt({ now, onAdopt }) {
 
   return (
     <div className="mx-auto min-h-screen max-w-[440px] bg-paper px-5 pb-10 pt-6">
-      <DogScene face="happy" level={1} scale={0.8} now={now} emoji="🥰" moodLabel="มีความสุข" />
+      <PetScene species="dog" face="happy" level={1} scale={0.8} now={now} emoji="🥰" moodLabel="มีความสุข" />
 
       <h1 className="mt-6 text-[28px] font-bold leading-tight">คุณได้รับน้องหมามาเลี้ยง</h1>
       <p className="mt-2 text-base leading-relaxed text-ink/70">
@@ -26,11 +26,11 @@ export default function Adopt({ now, onAdopt }) {
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6" noValidate>
-        <label htmlFor="dog-name" className="text-[15px] font-semibold">
+        <label htmlFor="pet-name" className="text-[15px] font-semibold">
           ตั้งชื่อน้องหมาของคุณ
         </label>
         <input
-          id="dog-name"
+          id="pet-name"
           value={name}
           onChange={(e) => {
             setName(e.target.value)

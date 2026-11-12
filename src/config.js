@@ -4,11 +4,24 @@
 export const APP_NAME = 'PawPal'
 export const APP_FULL_NAME = 'PawPal เลี้ยงน้องหมา'
 
+// รุ่นของโครงข้อมูลสัตว์เลี้ยง เพิ่มเลขนี้ทุกครั้งที่เปลี่ยนรูปแบบข้อมูล
+// (ใช้ใน normalizePet() เพื่อแปลงข้อมูลรุ่นเก่าให้เป็นรุ่นปัจจุบัน)
+export const DATA_VERSION = 2
+
+// ชนิดสัตว์เริ่มต้น (ข้อมูลรุ่น 1 ไม่มีฟิลด์ species เพราะมีแต่น้องหมา)
+export const DEFAULT_SPECIES = 'dog'
+
 // ชื่อ key ที่ใช้เก็บข้อมูลใน localStorage
 export const STORAGE_KEYS = {
-  dog: 'dog',
-  diary: 'diary',
+  pet: 'pawpal:pet',
+  diary: 'pawpal:diary',
+  // key ของข้อมูลรุ่น 1 (ย้ายมาเป็นรุ่นใหม่อัตโนมัติตอนเปิดแอป)
+  legacyDog: 'dog',
+  legacyDiary: 'diary',
 }
+
+// สมุดบันทึกเก็บย้อนหลังได้สูงสุดกี่รายการ
+export const DIARY_LIMIT = 300
 
 // ค่าเริ่มต้นตอนรับเลี้ยง (เต็ม 100)
 export const START_VALUE = 80

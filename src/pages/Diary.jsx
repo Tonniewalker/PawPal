@@ -1,5 +1,5 @@
 import { ACTIONS } from '../config'
-import { DAY } from '../dogLogic'
+import { DAY } from '../petLogic'
 
 const ICONS = {
   adopt: '🐶',
@@ -25,8 +25,8 @@ function dayLabel(ts, now) {
 
 const clock = (ts) => new Date(ts).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
 
-export default function Diary({ dog, diary, now }) {
-  const daysTogether = Math.floor((startOfDay(now) - startOfDay(dog.adoptedAt)) / DAY) + 1
+export default function Diary({ pet, diary, now }) {
+  const daysTogether = Math.floor((startOfDay(now) - startOfDay(pet.adoptedAt)) / DAY) + 1
 
   // นับจำนวนครั้งที่ดูแลแต่ละแบบ
   const counts = Object.keys(ACTIONS).map((key) => ({
@@ -46,7 +46,7 @@ export default function Diary({ dog, diary, now }) {
 
   return (
     <div className="px-5 pb-6">
-      <h1 className="text-[28px] font-bold leading-tight">สมุดบันทึกของ {dog.name}</h1>
+      <h1 className="text-[28px] font-bold leading-tight">สมุดบันทึกของ {pet.name}</h1>
       <p className="mt-1 text-[15px] text-ink/70">อยู่ด้วยกันมาเป็นวันที่ {daysTogether}</p>
 
       <ul className="mt-5 grid grid-cols-3 gap-3 text-center">

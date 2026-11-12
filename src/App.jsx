@@ -1,88 +1,125 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import BottomNav from './components/BottomNav'
+import Splash from './components/Splash'
 import Adopt from './pages/Adopt'
 import Home from './pages/Home'
 import Diary from './pages/Diary'
 import Settings from './pages/Settings'
-import { ACTIONS, APP_NAME, AWAY_NOTICE_MS, FULL } from './config'
-import { applyTime, createDog, formatDuration, getLevel, HOUR, MINUTE } from './dogLogic'
-import { clearAll, loadDiary, loadDog, saveDiary, saveDog } from './storage'
+import { ACTIONS, APP_NAME, AWAY_NOTICE_MS, DIARY_LIMIT, FULL } from './config'
+import { applyTime, createPet, formatDuration, getLevel, HOUR, makeDiaryEntry, MINUTE } from './petLogic'
+import { addDiaryEntries, loadGame, resetGame, savePet, shiftDiaryTimes } from './data'
 
-// ===== ทำงานครั้งเดียวตอนเปิดแอป =====
-// 1) Load ข้อมูลน้องหมาจาก localStorage
-// 2) เอาเวลาตอนนี้ลบกับ lastUpdated → รู้ว่าผู้ใช้หายไปนานแค่ไหน
-// 3) ลดค่าอิ่ม/น้ำ/ความสุข ตามเวลาที่หายไป
-function startUp() {
-  const saved = loadDog()
-  if (!saved) return { dog: null, welcome: null }
-
-  const now = Date.now()
-  const dog = applyTime(saved, now)
-  const awayMs = now - saved.lastUpdated
-  const welcome = awayMs >= AWAY_NOTICE_MS ? { awayMs, before: saved, after: dog } : null
-  return { dog, welcome }
-}
-
-function newEntry(type, text) {
-  return { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, type, text, at: Date.now() }
+// บันทึกข้อมูลแบบไม่ต้องรอ (UI อัปเดตไปก่อนแล้ว) ถ้าพลาดให้แจ้งใน console
+function persist(promise) {
+  promise.catch((err) => console.error('บันทึกข้อมูลไม่สำเร็จ', err))
 }
 
 export default function App() {
   const navigate = useNavigate()
 
-  // useState(ฟังก์ชัน) = เรียกฟังก์ชันนั้นแค่ครั้งแรกครั้งเดียว
-  const [start] = useState(startUp)
-  const [dog, setDog] = useState(start.dog)
-  const [welcome, setWelcome] = useState(start.welcome)
-  const [diary, setDiary] = useState(() => {
-    const list = loadDiary()
-    if (!start.welcome) return list
-    return [newEntry('return', `กลับมาหลังหายไป ${formatDuration(start.welcome.awayMs)}`), ...list]
-  })
+  const [status, setStatus] = useState('loading') // 'loading' | 'ready' | 'error'
+  const [pet, setPet] = useState(null)
+  const [diary, setDiary] = useState([])
+  const [welcome, setWelcome] = useState(null)
   const [now, setNow] = useState(() => Date.now())
 
-  // ===== Save: ทุกครั้งที่ dog หรือ diary เปลี่ยน ให้บันทึกลง localStorage =====
+  // เก็บค่า pet ล่าสุดไว้ให้ event listener ใช้ (listener ถูกสร้างครั้งเดียว เลยอ่าน state ตรง ๆ ไม่ได้)
+  const petRef = useRef(pet)
   useEffect(() => {
-    if (dog) saveDog(dog)
-  }, [dog])
+    petRef.current = pet
+  }, [pet])
+  // true = กำลังจะโหลดหน้าใหม่ ห้ามบันทึกอัตโนมัติ (ไม่งั้นจะเขียนทับข้อมูลที่เพิ่งแก้)
+  const reloadingRef = useRef(false)
 
+  // ===== ทำงานครั้งเดียวตอนเปิดแอป =====
+  // 1) Load ข้อมูลสัตว์เลี้ยง
+  // 2) เอาเวลาตอนนี้ลบกับ lastUpdated → รู้ว่าผู้ใช้หายไปนานแค่ไหน
+  // 3) ลดค่าอิ่ม/น้ำ/ความสุข ตามเวลาที่หายไป แล้วบันทึกกลับ
   useEffect(() => {
-    saveDiary(diary)
-  }, [diary])
+    let cancelled = false
+
+    loadGame()
+      .then(({ pet: saved, diary: list }) => {
+        if (cancelled) return
+        if (saved) {
+          const t = Date.now()
+          const current = applyTime(saved, t)
+          const awayMs = t - saved.lastUpdated
+          if (awayMs >= AWAY_NOTICE_MS) {
+            const entry = makeDiaryEntry('return', `กลับมาหลังหายไป ${formatDuration(awayMs)}`, t)
+            list = [entry, ...list]
+            persist(addDiaryEntries([entry]))
+            setWelcome({ awayMs, before: saved, after: current })
+          }
+          persist(savePet(current))
+          setPet(current)
+          setNow(t)
+        }
+        setDiary(list)
+        setStatus('ready')
+      })
+      .catch((err) => {
+        console.error('โหลดข้อมูลไม่สำเร็จ', err)
+        if (!cancelled) setStatus('error')
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // ===== ระหว่างเปิดแอปอยู่: ทุก 1 นาที ค่าจะลดลงตามเวลาจริง =====
-  // (และอัปเดตทันทีตอนสลับกลับมาที่แอป เพราะมือถือมักหยุด timer ตอนแอปอยู่เบื้องหลัง)
+  // (ไม่ต้องบันทึกทุกนาที เพราะคำนวณย้อนจาก lastUpdated ได้เสมอ)
+  // ตอนสลับออกจากแอป → บันทึกครั้งหนึ่ง (เวลาที่ "หายไป" จะได้นับจากตอนออกจริง ๆ)
+  // ตอนสลับกลับมา → อัปเดตทันที เพราะมือถือมักหยุด timer ตอนแอปอยู่เบื้องหลัง
   useEffect(() => {
     function tick() {
       const t = Date.now()
       setNow(t)
-      setDog((d) => (d ? applyTime(d, t) : d))
+      setPet((p) => (p ? applyTime(p, t) : p))
+    }
+    function onVisibilityChange() {
+      if (document.visibilityState === 'hidden') {
+        if (petRef.current && !reloadingRef.current) persist(savePet(applyTime(petRef.current, Date.now())))
+      } else {
+        tick()
+      }
     }
     const timer = setInterval(tick, MINUTE)
-    document.addEventListener('visibilitychange', tick)
+    document.addEventListener('visibilitychange', onVisibilityChange)
     return () => {
       clearInterval(timer)
-      document.removeEventListener('visibilitychange', tick)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
     }
   }, [])
 
   function addDiary(...entries) {
-    setDiary((list) => [...entries, ...list].slice(0, 300))
+    setDiary((list) => [...entries, ...list].slice(0, DIARY_LIMIT))
+    persist(addDiaryEntries(entries))
+  }
+
+  function updatePet(next) {
+    setPet(next)
+    persist(savePet(next))
   }
 
   function adopt(name) {
     const t = Date.now()
-    setDog(createDog(name, t))
+    const next = createPet({ name }, t)
+    const entry = makeDiaryEntry('adopt', `รับ ${name} มาเลี้ยง`, t)
+    setPet(next)
     setNow(t)
-    setDiary([newEntry('adopt', `รับ ${name} มาเลี้ยง`)])
+    setDiary([entry])
+    // ล้างข้อมูลเก่าที่อาจค้างอยู่ก่อน แล้วค่อยบันทึกตัวใหม่
+    persist(resetGame().then(() => Promise.all([savePet(next), addDiaryEntries([entry])])))
     navigate('/')
   }
 
   // กดปุ่มดูแล: คืนค่า EXP ที่ได้ (หรือ null ถ้ากดไม่ได้)
   function care(key) {
     const action = ACTIONS[key]
-    const current = applyTime(dog, Date.now())
+    const current = applyTime(pet, Date.now())
     if (current[action.stat] >= FULL) return null
 
     const next = {
@@ -90,43 +127,61 @@ export default function App() {
       [action.stat]: Math.min(100, current[action.stat] + action.amount),
       exp: current.exp + action.exp,
     }
-    setDog(next)
+    updatePet(next)
 
     const before = getLevel(current.exp).level
     const after = getLevel(next.exp).level
-    const entries = [newEntry(key, action.label)]
-    if (after > before) entries.unshift(newEntry('levelup', `เลเวลอัปเป็น Lv.${after}`))
+    const entries = [makeDiaryEntry(key, action.label)]
+    if (after > before) entries.unshift(makeDiaryEntry('levelup', `เลเวลอัปเป็น Lv.${after}`))
     addDiary(...entries)
 
     return { exp: action.exp, levelUp: after > before ? after : null }
   }
 
   function rename(name) {
-    setDog((d) => ({ ...d, name }))
-    addDiary(newEntry('rename', `เปลี่ยนชื่อเป็น ${name}`))
+    updatePet({ ...pet, name })
+    addDiary(makeDiaryEntry('rename', `เปลี่ยนชื่อเป็น ${name}`))
   }
 
-  // โหมดเดโม: ย้อน lastUpdated ใน localStorage แล้วโหลดแอปใหม่
+  // โหมดเดโม: ย้อน lastUpdated ในที่เก็บข้อมูล แล้วโหลดแอปใหม่
   // ผลเหมือนผู้ใช้ปิดแอปไปจริง ๆ ตามจำนวนชั่วโมงที่เลือก
   // (เลื่อนเวลาในสมุดบันทึกย้อนไปด้วย ให้ทุกอย่างตรงกัน)
-  function simulateAway(hours) {
+  async function simulateAway(hours) {
     const ms = hours * HOUR
-    saveDog({ ...dog, lastUpdated: dog.lastUpdated - ms, adoptedAt: dog.adoptedAt - ms })
-    saveDiary(diary.map((entry) => ({ ...entry, at: entry.at - ms })))
+    const current = applyTime(pet, Date.now())
+    reloadingRef.current = true
+    try {
+      await savePet({ ...current, lastUpdated: current.lastUpdated - ms, adoptedAt: current.adoptedAt - ms })
+      await shiftDiaryTimes(ms)
+    } catch (err) {
+      console.error('จำลองเวลาไม่สำเร็จ', err)
+      reloadingRef.current = false
+      return
+    }
     window.location.hash = '/'
     window.location.reload()
   }
 
-  function reset() {
-    clearAll()
-    setDog(null)
+  async function reset() {
+    try {
+      await resetGame()
+    } catch (err) {
+      console.error('ลบข้อมูลไม่สำเร็จ', err)
+      return
+    }
+    setPet(null)
     setDiary([])
     setWelcome(null)
     navigate('/')
   }
 
-  // ยังไม่มีน้องหมา → ไปหน้ารับเลี้ยง
-  if (!dog) return <Adopt now={now} onAdopt={adopt} />
+  if (status === 'loading') return <Splash />
+  if (status === 'error') {
+    return <Splash message="โหลดข้อมูลไม่สำเร็จ" onRetry={() => window.location.reload()} />
+  }
+
+  // ยังไม่มีสัตว์เลี้ยง → ไปหน้ารับเลี้ยง
+  if (!pet) return <Adopt now={now} onAdopt={adopt} />
 
   const clock = new Date(now).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
 
@@ -143,7 +198,7 @@ export default function App() {
             path="/"
             element={
               <Home
-                dog={dog}
+                pet={pet}
                 now={now}
                 welcome={welcome}
                 onDismissWelcome={() => setWelcome(null)}
@@ -151,12 +206,12 @@ export default function App() {
               />
             }
           />
-          <Route path="/diary" element={<Diary dog={dog} diary={diary} now={now} />} />
+          <Route path="/diary" element={<Diary pet={pet} diary={diary} now={now} />} />
           <Route
             path="/settings"
             element={
               <Settings
-                dog={dog}
+                pet={pet}
                 onRename={rename}
                 onSimulateAway={simulateAway}
                 onReset={reset}

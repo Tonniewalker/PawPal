@@ -7,8 +7,8 @@ const SKIPS = [
   { hours: 24, label: '1 วัน' },
 ]
 
-export default function Settings({ dog, onRename, onSimulateAway, onReset }) {
-  const [name, setName] = useState(dog.name)
+export default function Settings({ pet, onRename, onSimulateAway, onReset }) {
+  const [name, setName] = useState(pet.name)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [confirmReset, setConfirmReset] = useState(false)
@@ -20,7 +20,7 @@ export default function Settings({ dog, onRename, onSimulateAway, onReset }) {
       setError('ชื่อต้องไม่ว่าง')
       return
     }
-    if (trimmed === dog.name) return
+    if (trimmed === pet.name) return
     onRename(trimmed)
     setMessage('บันทึกชื่อแล้ว')
   }
@@ -89,7 +89,7 @@ export default function Settings({ dog, onRename, onSimulateAway, onReset }) {
         ) : (
           <div className="mt-2 rounded-2xl border-2 border-berry/40 bg-berry/5 p-4">
             <p className="text-[15px]">
-              ข้อมูลทั้งหมดของ {dog.name} รวมถึงเลเวลและสมุดบันทึกจะหายไป กู้คืนไม่ได้
+              ข้อมูลทั้งหมดของ {pet.name} รวมถึงเลเวลและสมุดบันทึกจะหายไป กู้คืนไม่ได้
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               <button

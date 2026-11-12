@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import DogScene from '../components/DogScene'
+import PetScene from '../components/PetScene'
 import StatBar from '../components/StatBar'
 import { ACTIONS, EXP_PER_LEVEL, FULL, STATS } from '../config'
-import { formatDuration, getLevel, getMood, getStage } from '../dogLogic'
+import { formatDuration, getLevel, getMood, getStage } from '../petLogic'
 
 function welcomeLine(name, faceAfter) {
   if (faceAfter === 'sad') return `${name} รอจนเศร้าแล้ว รีบดูแลหน่อยนะ`
@@ -10,13 +10,13 @@ function welcomeLine(name, faceAfter) {
   return `${name} คิดถึงนะ`
 }
 
-export default function Home({ dog, now, welcome, onDismissWelcome, onCare }) {
+export default function Home({ pet, now, welcome, onDismissWelcome, onCare }) {
   const [hopKey, setHopKey] = useState(0) // เปลี่ยนค่าเพื่อให้น้องกระโดด
   const [pops, setPops] = useState([]) // ข้อความ +EXP ที่ลอยขึ้นจากปุ่ม
   const [levelUp, setLevelUp] = useState(null)
 
-  const mood = getMood(dog)
-  const { level, progress } = getLevel(dog.exp)
+  const mood = getMood(pet)
+  const { level, progress } = getLevel(pet.exp)
   const stage = getStage(level)
   const moodIsBad = mood.face === 'sad' || mood.face === 'hungry' || mood.face === 'thirsty'
 
@@ -43,7 +43,7 @@ export default function Home({ dog, now, welcome, onDismissWelcome, onCare }) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-lg font-bold">หายไป {formatDuration(welcome.awayMs)}</p>
-              <p className="text-[15px]">{welcomeLine(dog.name, getMood(welcome.after).face)}</p>
+              <p className="text-[15px]">{welcomeLine(pet.name, getMood(welcome.after).face)}</p>
             </div>
             <button
               type="button"
@@ -67,19 +67,19 @@ export default function Home({ dog, now, welcome, onDismissWelcome, onCare }) {
         </section>
       )}
 
-      <DogScene face={mood.face} level={level} scale={stage.scale} hopKey={hopKey} emoji={mood.emoji} moodLabel={mood.label} now={now}>
+      <PetScene species={pet.species} face={mood.face} level={level} scale={stage.scale} hopKey={hopKey} emoji={mood.emoji} moodLabel={mood.label} now={now}>
         {levelUp && (
           <div className="toast-in absolute inset-x-0 top-1/3 mx-auto w-max rounded-2xl border-2 border-sun-dark bg-sun px-5 py-2 text-lg font-bold">
             เลเวลอัป! ตอนนี้ Lv.{levelUp}
           </div>
         )}
-      </DogScene>
+      </PetScene>
 
       {/* ชื่อ + เลเวล + EXP */}
       <section>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-[28px] font-bold leading-tight">{dog.name}</h1>
+            <h1 className="text-[28px] font-bold leading-tight">{pet.name}</h1>
             <p className="mt-1 flex flex-wrap items-center gap-2 text-[15px] text-ink/70">
               {stage.name}
               <span
@@ -106,14 +106,14 @@ export default function Home({ dog, now, welcome, onDismissWelcome, onCare }) {
       {/* ค่าสถานะ */}
       <section className="space-y-3">
         {STATS.map((s) => (
-          <StatBar key={s.key} icon={s.icon} label={s.label} value={dog[s.key]} color={s.color} />
+          <StatBar key={s.key} icon={s.icon} label={s.label} value={pet[s.key]} color={s.color} />
         ))}
       </section>
 
       {/* ปุ่มดูแล */}
       <section className="grid grid-cols-3 gap-3">
         {Object.entries(ACTIONS).map(([key, action]) => {
-          const full = dog[action.stat] >= FULL
+          const full = pet[action.stat] >= FULL
           return (
             <div key={key} className="relative">
               <button

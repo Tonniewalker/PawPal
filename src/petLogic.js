@@ -1,5 +1,5 @@
-// ===== Logic ของน้องหมา (ไม่มี React ในไฟล์นี้ เป็นฟังก์ชันคำนวณล้วน ๆ) =====
-import { DECAY_PER_HOUR, EXP_PER_LEVEL, LOW, START_VALUE } from './config'
+// ===== Logic ของสัตว์เลี้ยง (ไม่มี React ในไฟล์นี้ เป็นฟังก์ชันคำนวณล้วน ๆ) =====
+import { DATA_VERSION, DECAY_PER_HOUR, DEFAULT_SPECIES, EXP_PER_LEVEL, LOW, START_VALUE } from './config'
 
 export const MINUTE = 60 * 1000
 export const HOUR = 60 * MINUTE
@@ -7,8 +7,10 @@ export const DAY = 24 * HOUR
 
 const clamp = (n) => Math.min(100, Math.max(0, n))
 
-export function createDog(name, now) {
+export function createPet({ name, species = DEFAULT_SPECIES }, now) {
   return {
+    version: DATA_VERSION,
+    species,
     name,
     food: START_VALUE,
     water: START_VALUE,
@@ -19,22 +21,44 @@ export function createDog(name, now) {
   }
 }
 
-// ลดค่าทั้ง 3 ตามจำนวนชั่วโมงที่ผ่านไป
-export function decay(dog, hours) {
+// ตรวจและแปลงข้อมูลที่โหลดมา (จาก localStorage หรือคลาวด์) ให้เป็นรูปแบบรุ่นปัจจุบัน
+// ข้อมูลเสียหรือขาดค่าที่จำเป็น → คืน null (ถือว่ายังไม่มีสัตว์เลี้ยง)
+// ทุกครั้งที่เพิ่มฟิลด์ใหม่ในอนาคต (เช่น coins) ให้เติมค่าเริ่มต้นตรงนี้ที่เดียว
+export function normalizePet(raw) {
+  if (!raw || typeof raw !== 'object' || typeof raw.name !== 'string') return null
+  if (!['food', 'water', 'fun', 'exp', 'lastUpdated'].every((k) => typeof raw[k] === 'number')) return null
+
   return {
-    ...dog,
-    food: clamp(dog.food - DECAY_PER_HOUR.food * hours),
-    water: clamp(dog.water - DECAY_PER_HOUR.water * hours),
-    fun: clamp(dog.fun - DECAY_PER_HOUR.fun * hours),
+    ...raw,
+    version: DATA_VERSION,
+    species: typeof raw.species === 'string' ? raw.species : DEFAULT_SPECIES, // รุ่น 1 มีแต่หมา
+    adoptedAt: typeof raw.adoptedAt === 'number' ? raw.adoptedAt : raw.lastUpdated,
+  }
+}
+
+// ลดค่าทั้ง 3 ตามจำนวนชั่วโมงที่ผ่านไป
+export function decay(pet, hours) {
+  return {
+    ...pet,
+    food: clamp(pet.food - DECAY_PER_HOUR.food * hours),
+    water: clamp(pet.water - DECAY_PER_HOUR.water * hours),
+    fun: clamp(pet.fun - DECAY_PER_HOUR.fun * hours),
   }
 }
 
 // ★ หัวใจของแอป ★
 // เวลาตอนนี้ − เวลาที่บันทึกไว้ = เวลาที่ผ่านไป → ลดค่าตามนั้น
 // แล้วเปลี่ยน lastUpdated เป็นเวลาตอนนี้ (ไม่งั้นครั้งหน้าจะลบซ้ำจากเวลาเดิม)
-export function applyTime(dog, now) {
-  const hours = Math.max(0, (now - dog.lastUpdated) / HOUR)
-  return { ...decay(dog, hours), lastUpdated: now }
+// หมายเหตุ: คำนวณทีละช่วงหรือรวดเดียวได้ผลเท่ากัน เพราะค่าลดแบบเส้นตรงและหยุดที่ 0
+// เลยไม่จำเป็นต้องบันทึกข้อมูลทุกนาที บันทึกเฉพาะตอนผู้เล่นทำอะไรก็พอ
+export function applyTime(pet, now) {
+  const hours = Math.max(0, (now - pet.lastUpdated) / HOUR)
+  return { ...decay(pet, hours), lastUpdated: now }
+}
+
+// สร้างรายการในสมุดบันทึก
+export function makeDiaryEntry(type, text, at = Date.now()) {
+  return { id: `${at}-${Math.random().toString(36).slice(2, 7)}`, type, text, at }
 }
 
 // อารมณ์คำนวณจากตัวเลข ไม่ต้องเก็บแยก (ข้อมูลจะไม่มีทางขัดกันเอง)
@@ -47,8 +71,8 @@ const MOODS = {
   sad: { face: 'sad', label: 'เศร้ามาก', emoji: '😭' },
 }
 
-export function getMood(dog) {
-  const { food, water, fun } = dog
+export function getMood(pet) {
+  const { food, water, fun } = pet
   const lowCount = [food, water, fun].filter((v) => v < LOW).length
   if (lowCount >= 2) return MOODS.sad
   if (water < LOW) return MOODS.thirsty
