@@ -1,10 +1,10 @@
-// ===== ที่เก็บข้อมูลแบบ localStorage (หลักการเดียวกับ Week 7) =====
+// ===== ที่เก็บข้อมูลแบบ localStorage สำหรับผู้เล่น Guest (หลักการเดียวกับ Week 7) =====
 // localStorage เก็บได้แค่ข้อความ เลยต้องแปลง object → ข้อความด้วย JSON.stringify ตอน Save
 // และแปลงกลับด้วย JSON.parse ตอน Load
 //
 // ทุกฟังก์ชันคืนค่าเป็น Promise (async) ถึง localStorage จะทำงานทันทีก็ตาม
 // เพื่อให้หน้าตาเหมือนที่เก็บข้อมูลบนคลาวด์ (Firestore) ที่ต้องรอเน็ต
-// พอเปลี่ยนไปใช้ Firestore จะได้สลับไฟล์นี้ได้เลย โดยไม่ต้องแก้ App.jsx
+// App.jsx จะได้สลับไปใช้ cloudStore.js ได้ทันทีที่ผู้ใช้ล็อกอิน โดยไม่ต้องแก้โค้ดส่วนอื่น
 import { DIARY_LIMIT, STORAGE_KEYS } from '../config'
 import { normalizePet } from '../petLogic'
 
@@ -53,7 +53,7 @@ function migrateLegacy() {
 
 // โหลดทุกอย่างตอนเปิดแอป → { pet, diary } (ยังไม่มีสัตว์เลี้ยง pet = null)
 // diary เรียงใหม่ → เก่า
-export async function loadGame() {
+async function loadGame() {
   migrateLegacy()
   return {
     pet: normalizePet(read(STORAGE_KEYS.pet, null)),
@@ -61,17 +61,17 @@ export async function loadGame() {
   }
 }
 
-export async function savePet(pet) {
+async function savePet(pet) {
   write(STORAGE_KEYS.pet, pet)
 }
 
 // เพิ่มรายการใหม่ไว้บนสุดของสมุดบันทึก
-export async function addDiaryEntries(entries) {
+async function addDiaryEntries(entries) {
   write(STORAGE_KEYS.diary, [...entries, ...readDiary()].slice(0, DIARY_LIMIT))
 }
 
 // โหมดเดโม: เลื่อนเวลาทุกรายการในสมุดบันทึกย้อนไป ms มิลลิวินาที
-export async function shiftDiaryTimes(ms) {
+async function shiftDiaryTimes(ms) {
   write(
     STORAGE_KEYS.diary,
     readDiary().map((entry) => ({ ...entry, at: entry.at - ms })),
@@ -79,6 +79,20 @@ export async function shiftDiaryTimes(ms) {
 }
 
 // ลบข้อมูลทั้งหมดเพื่อเริ่มเลี้ยงใหม่
-export async function resetGame() {
+async function resetGame() {
   remove(STORAGE_KEYS.pet, STORAGE_KEYS.diary)
+}
+
+export const localStore = { loadGame, savePet, addDiaryEntries, shiftDiaryTimes, resetGame }
+
+// ===== สถานะ Guest =====
+// เคยเลือกเล่นแบบ Guest หรือมีสัตว์เลี้ยงค้างอยู่ในเครื่อง → เข้าแอปแบบ Guest ได้เลย ไม่ต้องถาม
+export function isGuest() {
+  migrateLegacy()
+  return read(STORAGE_KEYS.guest, null) === 'yes' || read(STORAGE_KEYS.pet, null) !== null
+}
+
+export function setGuest(on) {
+  if (on) write(STORAGE_KEYS.guest, 'yes')
+  else remove(STORAGE_KEYS.guest)
 }

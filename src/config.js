@@ -15,6 +15,7 @@ export const DEFAULT_SPECIES = 'dog'
 export const STORAGE_KEYS = {
   pet: 'pawpal:pet',
   diary: 'pawpal:diary',
+  guest: 'pawpal:guest', // 'yes' = ผู้ใช้เลือกเล่นแบบ Guest แล้ว (ไม่ต้องถามอีก)
   // key ของข้อมูลรุ่น 1 (ย้ายมาเป็นรุ่นใหม่อัตโนมัติตอนเปิดแอป)
   legacyDog: 'dog',
   legacyDiary: 'diary',

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import AccountSection from '../components/AccountSection'
 import { getSpecies } from '../species'
 
 // ปุ่มจำลองว่าผู้ใช้ปิดแอปไปนานเท่าไหร่ (ใช้ตอนพรีเซนต์)
@@ -8,7 +9,7 @@ const SKIPS = [
   { hours: 24, label: '1 วัน' },
 ]
 
-export default function Settings({ pet, onRename, onSimulateAway, onReset }) {
+export default function Settings({ pet, account, onRename, onSimulateAway, onReset }) {
   const [name, setName] = useState(pet.name)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -30,6 +31,8 @@ export default function Settings({ pet, onRename, onSimulateAway, onReset }) {
   return (
     <div className="space-y-8 px-5 pb-8">
       <h1 className="text-[28px] font-bold leading-tight">ตั้งค่า</h1>
+
+      <AccountSection account={account} />
 
       {/* เปลี่ยนชื่อ */}
       <section>
@@ -60,7 +63,7 @@ export default function Settings({ pet, onRename, onSimulateAway, onReset }) {
       <section>
         <h2 className="text-lg font-bold">ทดลองระบบเวลา</h2>
         <p className="mt-1 text-[15px] leading-relaxed text-ink/70">
-          ย้อนเวลาที่บันทึกไว้ใน localStorage แล้วเปิดแอปใหม่ ให้ผลเหมือนผู้ใช้ปิดแอปไปจริง ๆ
+          ย้อนเวลาที่บันทึกไว้ แล้วเปิดแอปใหม่ ให้ผลเหมือนผู้ใช้ปิดแอปไปจริง ๆ
         </p>
         <p className="mt-3 text-[15px] font-semibold">จำลองว่าปิดแอปไป</p>
         <div className="mt-2 grid grid-cols-3 gap-2">
@@ -91,7 +94,8 @@ export default function Settings({ pet, onRename, onSimulateAway, onReset }) {
         ) : (
           <div className="mt-2 rounded-2xl border-2 border-berry/40 bg-berry/5 p-4">
             <p className="text-[15px]">
-              ข้อมูลทั้งหมดของ {pet.name} รวมถึงเลเวลและสมุดบันทึกจะหายไป กู้คืนไม่ได้
+              ข้อมูลทั้งหมดของ {pet.name} รวมถึงเลเวลและสมุดบันทึกจะหายไป
+              {account.mode === 'user' ? ' (ลบจากบัญชีบนคลาวด์ด้วย)' : ''} กู้คืนไม่ได้
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               <button

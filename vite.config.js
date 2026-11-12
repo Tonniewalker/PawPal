@@ -8,6 +8,19 @@ export default defineConfig({
   // './' = ใช้ path แบบสัมพัทธ์ ทำให้ deploy ขึ้น GitHub Pages ได้ไม่ว่าจะตั้งชื่อ repo ว่าอะไร
   // (ใช้คู่กับ HashRouter ใน main.jsx)
   base: './',
+  build: {
+    rollupOptions: {
+      output: {
+        // แยก Firebase กับ React ออกเป็นไฟล์ต่างหาก: แก้โค้ดแอปแล้วผู้ใช้ไม่ต้องโหลดส่วนนี้ใหม่
+        manualChunks(id) {
+          if (id.includes('node_modules/firebase') || id.includes('node_modules/@firebase')) return 'firebase'
+          if (id.includes('node_modules')) return 'vendor'
+        },
+      },
+    },
+    // Firebase (Auth + Firestore แบบออฟไลน์ได้) ใหญ่ราว 800 kB เป็นเรื่องปกติ
+    chunkSizeWarningLimit: 900,
+  },
   plugins: [
     react(),
     VitePWA({
