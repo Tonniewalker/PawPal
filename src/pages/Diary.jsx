@@ -13,6 +13,7 @@ const ICONS = {
   sleep: '🌙',
   wake: '☀️',
   levelup: '⭐',
+  bonus: '🎁',
   rename: '✏️',
   return: '👋',
 }

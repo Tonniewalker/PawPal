@@ -1,16 +1,18 @@
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import BottomNav from '../components/BottomNav'
-import TopBar from '../components/TopBar'
+import TopBar, { Coin } from '../components/TopBar'
 import PetAvatar from '../components/pets/PetAvatar'
 import { PLATE_X, PLATE_Y, ROOMS } from '../components/rooms'
 import { isInside, useDrag } from '../components/rooms/useDrag'
 import { FOODS, PAT, STATS, WASH } from '../config'
-import { formatDuration, getLevel, getMood, getStage, getTimeOfDay } from '../petLogic'
+import { foodCount, formatDuration, getLevel, getMood, getStage, getTimeOfDay } from '../petLogic'
 import { getSpecies } from '../species'
 
 // แปลงตำแหน่งในกรอบฉาก 390×760 เป็น % (ใช้วางปุ่มทับภาพ)
 const pctX = (x) => `${(x / 390) * 100}%`
 const pctBottom = (y) => `${((760 - y) / 760) * 100}%`
+const TRAY_SIZE = 3
 
 const roundBtn =
   'flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-white text-3xl shadow-[0_3px_0_rgba(46,58,89,0.18)] active:translate-y-0.5'
@@ -43,7 +45,6 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
   const [pops, setPops] = useState([])
   const [levelUp, setLevelUp] = useState(null)
   const [say, setSay] = useState(null)
-  const [toast, setToast] = useState(null)
   const sayTimer = useRef(null)
 
   function speak(text) {
@@ -57,9 +58,9 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
     if (result.say) speak(result.say)
     if (!result.ok) return
     setHopKey((k) => k + 1)
-    if (result.exp) {
+    if (result.exp || result.coins) {
       const id = `${Date.now()}-${Math.random()}`
-      setPops((list) => [...list, { id, text: `+${result.exp} EXP` }])
+      setPops((list) => [...list, { id, exp: result.exp, coins: result.coins }])
       setTimeout(() => setPops((list) => list.filter((p) => p.id !== id)), 900)
     }
     if (result.levelUp) {
@@ -116,7 +117,10 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
     if (result.ok) care.logPat(1)
   }
 
-  // ===== ห้องครัว: ลากอาหารไปที่ปากน้อง =====
+  // ===== ห้องครัว: ลากอาหารไปที่ปากน้อง (โต๊ะวางได้ทีละ 3 จาน เลื่อนด้วยลูกศร) =====
+  const foodKeys = Object.keys(FOODS)
+  const [trayStart, setTrayStart] = useState(0)
+  const trayKeys = foodKeys.slice(trayStart, trayStart + TRAY_SIZE)
   const [nearMouth, setNearMouth] = useState(false)
   const food = useDrag({
     onMove: (x, y) => setNearMouth(isInside(petSvg(), x, y)),
@@ -228,8 +232,16 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
 
           {/* +EXP ลอยขึ้น */}
           {pops.map((p) => (
-            <span key={p.id} className="pop-up pointer-events-none absolute left-1/2 top-[15%] whitespace-nowrap text-lg font-bold text-sun-dark drop-shadow">
-              {p.text}
+            <span
+              key={p.id}
+              className="pop-up pointer-events-none absolute left-1/2 top-[15%] flex items-center gap-1 whitespace-nowrap text-lg font-bold text-sun-dark drop-shadow"
+            >
+              {p.exp > 0 && <span>+{p.exp} EXP</span>}
+              {p.coins > 0 && (
+                <span className="flex items-center gap-0.5">
+                  +{p.coins} <Coin size={18} />
+                </span>
+              )}
             </span>
           ))}
 
@@ -248,20 +260,69 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
         </svg>
 
         {/* ===== ของในแต่ละห้อง ===== */}
-        {room === 'kitchen' &&
-          Object.entries(FOODS).map(([key, f], i) => (
+        {room === 'kitchen' && (
+          <>
+            {trayKeys.map((key, i) => {
+              const f = FOODS[key]
+              const count = foodCount(pet, key)
+              const pos = { left: pctX(PLATE_X[i]), bottom: pctBottom(PLATE_Y - 6) }
+              // หมดแล้ว → แตะเพื่อไปซื้อที่ร้าน
+              if (count <= 0) {
+                return (
+                  <Link
+                    key={key}
+                    to="/shop"
+                    aria-label={`${f.label}หมดแล้ว ไปซื้อที่ร้าน`}
+                    className="absolute z-10 -translate-x-1/2 text-[44px] leading-none"
+                    style={pos}
+                  >
+                    <span className="opacity-35 grayscale">{f.icon}</span>
+                    <span className="absolute -bottom-3 -right-4 flex h-7 min-w-7 items-center justify-center rounded-full border-2 border-white bg-sun px-1 text-base font-bold">
+                      +
+                    </span>
+                  </Link>
+                )
+              }
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  {...food.bind(key)}
+                  onClick={(e) => e.detail === 0 && react(care.feed(key))}
+                  aria-label={`ลาก${f.label}ไปให้${pet.name}กิน (มี ${count === Infinity ? 'ไม่จำกัด' : count})`}
+                  className={`absolute z-10 -translate-x-1/2 touch-none text-[44px] leading-none ${food.drag?.item === key ? 'opacity-30' : ''}`}
+                  style={pos}
+                >
+                  {f.icon}
+                  <span className="absolute -bottom-3 -right-4 flex h-7 min-w-7 items-center justify-center rounded-full border-2 border-ink bg-white px-1 text-sm font-bold tabular-nums">
+                    {count === Infinity ? '∞' : count}
+                  </span>
+                </button>
+              )
+            })}
+            {/* ลูกศรเลื่อนดูอาหารบนโต๊ะ (โชว์ทีละ 3 จาน) */}
             <button
-              key={key}
               type="button"
-              {...food.bind(key)}
-              onClick={(e) => e.detail === 0 && react(care.feed(key))}
-              aria-label={`ลาก${f.label}ไปให้${pet.name}กิน`}
-              className={`absolute z-10 -translate-x-1/2 touch-none text-[44px] leading-none ${food.drag?.item === key ? 'opacity-30' : ''}`}
-              style={{ left: pctX(PLATE_X[i]), bottom: pctBottom(PLATE_Y - 6) }}
+              onClick={() => setTrayStart((n) => Math.max(0, n - 1))}
+              disabled={trayStart === 0}
+              aria-label="อาหารก่อนหน้า"
+              className="absolute left-1 z-10 flex h-10 w-8 items-center justify-center rounded-full bg-white/90 text-xl font-bold shadow disabled:opacity-0"
+              style={{ bottom: pctBottom(PLATE_Y - 4) }}
             >
-              {f.icon}
+              ‹
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => setTrayStart((n) => Math.min(foodKeys.length - TRAY_SIZE, n + 1))}
+              disabled={trayStart >= foodKeys.length - TRAY_SIZE}
+              aria-label="อาหารถัดไป"
+              className="absolute right-1 z-10 flex h-10 w-8 items-center justify-center rounded-full bg-white/90 text-xl font-bold shadow disabled:opacity-0"
+              style={{ bottom: pctBottom(PLATE_Y - 4) }}
+            >
+              ›
+            </button>
+          </>
+        )}
 
         {room === 'bathroom' && (
           <>
@@ -302,13 +363,13 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
       {/* ปิดไฟ = ห้องมืด */}
       {sleepingHere && <div className="pointer-events-none absolute inset-0 z-20 bg-[#141634]/55" aria-hidden="true" />}
 
-      <TopBar level={level} progress={progress} name={pet.name} stageName={stage.name} />
+      <TopBar level={level} progress={progress} name={pet.name} stageName={stage.name} coins={pet.coins} />
 
       {/* ===== การ์ดแจ้งเตือนใต้แถบบน ===== */}
       <div className="absolute inset-x-3 top-[80px] z-30 space-y-2">
         {notice && (
           <div className="toast-in flex items-center justify-between gap-3 rounded-2xl border-2 border-leaf/40 bg-white/95 px-4 py-2.5" role="status">
-            <span className="text-[15px] font-semibold text-[#3E7A2A]">☁️ {notice}</span>
+            <span className="text-[15px] font-semibold text-[#3E7A2A]">{notice}</span>
             <button type="button" onClick={onDismissNotice} aria-label="ปิดข้อความ" className="px-1 text-ink/60">
               ✕
             </button>
@@ -346,19 +407,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
         </div>
       )}
 
-      {toast && (
-        <p className="toast-in absolute inset-x-0 bottom-[120px] z-40 text-center" role="status">
-          <span className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">{toast}</span>
-        </p>
-      )}
-
-      <BottomNav
-        pet={pet}
-        onShop={() => {
-          setToast('ร้านค้าเปิดเร็ว ๆ นี้ 🛒')
-          setTimeout(() => setToast(null), 1800)
-        }}
-      />
+      <BottomNav pet={pet} />
 
       {/* ของที่กำลังลาก (ตามนิ้ว) */}
       {dragging && (

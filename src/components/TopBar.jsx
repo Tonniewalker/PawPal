@@ -58,10 +58,10 @@ export default function TopBar({ level, progress, name, stageName, coins = 0 }) 
         </div>
       </div>
 
-      <div className={`pointer-events-auto ml-auto flex items-center gap-1.5 py-1.5 pl-1.5 pr-3 ${pill}`} aria-label={`เหรียญ ${coins}`}>
+      <Link to="/shop" className={`pointer-events-auto ml-auto flex items-center gap-1.5 py-1.5 pl-1.5 pr-3 ${pill}`} aria-label={`มีเหรียญ ${coins} ไปร้านค้า`}>
         <Coin />
         <span className="text-base font-bold tabular-nums">{coins}</span>
-      </div>
+      </Link>
 
       <div className="pointer-events-auto relative">
         <button

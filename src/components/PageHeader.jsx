@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 
 // หัวหน้าเพจ (สมุดบันทึก / ตั้งค่า) มีปุ่มกลับไปห้องที่เปิดอยู่ก่อนหน้า
-export default function PageHeader({ title }) {
+export default function PageHeader({ title, right }) {
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -21,7 +21,8 @@ export default function PageHeader({ title }) {
       >
         ←
       </button>
-      <h1 className="text-[24px] font-bold leading-tight">{title}</h1>
+      <h1 className="min-w-0 flex-1 truncate text-[24px] font-bold leading-tight">{title}</h1>
+      {right}
     </header>
   )
 }

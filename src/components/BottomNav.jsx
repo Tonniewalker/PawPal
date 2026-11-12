@@ -23,7 +23,7 @@ function Gauge({ icon, value, active }) {
 }
 
 // แถบล่างแบบ My Talking Tom: แต่ละปุ่ม = ไปห้องนั้น + หลอดบอกค่าที่ห้องนั้นดูแล
-export default function BottomNav({ pet, onShop }) {
+export default function BottomNav({ pet }) {
   // เรียงตามลำดับห้อง: นั่งเล่น ครัว ห้องน้ำ ห้องนอน
   const rooms = Object.keys(ROOMS).map((room) => {
     const stat = STATS.find((s) => s.room === room)
@@ -34,10 +34,10 @@ export default function BottomNav({ pet, onShop }) {
     <nav className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-white/95 via-white/80 to-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-8">
       <ul className="flex justify-around">
         <li>
-          <button type="button" onClick={onShop} className="flex flex-col items-center gap-1" aria-label="ร้านค้า">
+          <NavLink to="/shop" className="flex flex-col items-center gap-1" aria-label="ร้านค้า">
             <Gauge icon="🛒" />
             <span className="text-[11px] font-semibold text-ink/70">ร้านค้า</span>
-          </button>
+          </NavLink>
         </li>
         {rooms.map(({ room, stat, value, path, navLabel }) => (
           <li key={room}>

@@ -47,7 +47,7 @@ export function useAccount() {
         }
         await moveLocalToCloud(local, cloud)
         if (stale()) return
-        setState({ status: 'user', account, store: cloud, notice: `ย้าย ${local.pet.name} ขึ้นบัญชีแล้ว` })
+        setState({ status: 'user', account, store: cloud, notice: `☁️ ย้าย ${local.pet.name} ขึ้นบัญชีแล้ว` })
         return
       }
       setGuest(false)

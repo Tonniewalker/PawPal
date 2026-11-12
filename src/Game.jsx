@@ -6,8 +6,9 @@ import Adopt from './pages/Adopt'
 import Home from './pages/Home'
 import Diary from './pages/Diary'
 import Settings from './pages/Settings'
-import { AWAY_NOTICE_MS, DIARY_LIMIT, FOODS, FULL, PAT, SLEEP, WASH } from './config'
-import { applyTime, createPet, formatDuration, getLevel, HOUR, makeDiaryEntry, MINUTE } from './petLogic'
+import Shop from './pages/Shop'
+import { AWAY_NOTICE_MS, COINS, DIARY_LIMIT, FOODS, FULL, PAT, SLEEP, WASH } from './config'
+import { applyTime, createPet, dayKey, foodCount, formatDuration, getLevel, HOUR, makeDiaryEntry, MINUTE } from './petLogic'
 
 // บันทึกข้อมูลแบบไม่ต้องรอ (UI อัปเดตไปก่อนแล้ว) ถ้าพลาดให้แจ้งใน console
 function persist(promise) {
@@ -58,13 +59,22 @@ export default function Game({ store, account, notice: initialNotice }) {
         if (cancelled) return
         if (saved) {
           const t = Date.now()
-          const current = applyTime(saved, t)
+          let current = applyTime(saved, t)
           const awayMs = t - saved.lastUpdated
+          const entries = []
           if (awayMs >= AWAY_NOTICE_MS) {
-            const entry = makeDiaryEntry('return', `กลับมาหลังหายไป ${formatDuration(awayMs)}`, t)
-            list = [entry, ...list]
-            persist(addDiaryEntries([entry]))
+            entries.push(makeDiaryEntry('return', `กลับมาหลังหายไป ${formatDuration(awayMs)}`, t))
             setWelcome({ awayMs, before: saved, after: current })
+          }
+          // โบนัสรายวัน: เปิดแอปวันใหม่ ได้เหรียญเพิ่ม (วันละครั้ง)
+          if (current.lastBonusDay !== dayKey(t)) {
+            current = { ...current, coins: current.coins + COINS.daily, lastBonusDay: dayKey(t) }
+            entries.unshift(makeDiaryEntry('bonus', `โบนัสรายวัน +${COINS.daily} เหรียญ`, t + 1))
+            setNotice((n) => n ?? `🎁 โบนัสรายวัน +${COINS.daily} เหรียญ`)
+          }
+          if (entries.length) {
+            list = [...entries, ...list]
+            persist(addDiaryEntries(entries))
           }
           persist(savePet(current))
           petRef.current = current
@@ -136,7 +146,8 @@ export default function Game({ store, account, notice: initialNotice }) {
 
   function adopt({ name, species }) {
     const t = Date.now()
-    const next = createPet({ name, species }, t)
+    // วันที่รับเลี้ยงนับว่ารับโบนัสรายวันไปแล้ว (ได้เหรียญเริ่มต้นแทน)
+    const next = { ...createPet({ name, species }, t), lastBonusDay: dayKey(t) }
     const entry = makeDiaryEntry('adopt', `รับ ${name} มาเลี้ยง`, t)
     petRef.current = next
     setPet(next)
@@ -148,35 +159,49 @@ export default function Game({ store, account, notice: initialNotice }) {
   }
 
   // ===== การดูแล =====
-  // ทุกการดูแลคืนผลแบบเดียวกัน: { ok, exp, levelUp } หรือ { ok: false, say: 'ข้อความที่น้องพูด' }
+  // ทุกการดูแลคืนผลแบบเดียวกัน: { ok, exp, coins, levelUp } หรือ { ok: false, say: 'ข้อความที่น้องพูด' }
+  // ได้เหรียญ = ครึ่งหนึ่งของ EXP (ปัดขึ้น) + โบนัสเลเวลอัป
   function current() {
     return applyTime(petRef.current, Date.now())
   }
 
   function applyCare(base, { add = {}, set = {}, exp = 0, entries = [] }) {
-    const next = { ...base, ...set, exp: base.exp + exp }
+    const before = getLevel(base.exp).level
+    const after = getLevel(base.exp + exp).level
+    const coins = Math.ceil(exp * COINS.perExp) + (after - before) * COINS.levelUp
+
+    const next = { ...base, ...set, exp: base.exp + exp, coins: base.coins + coins }
     for (const [key, amount] of Object.entries(add)) next[key] = Math.min(100, base[key] + amount)
     updatePet(next)
 
-    const before = getLevel(base.exp).level
-    const after = getLevel(next.exp).level
     const log = entries.map(([type, text]) => makeDiaryEntry(type, text))
-    if (after > before) log.unshift(makeDiaryEntry('levelup', `เลเวลอัปเป็น Lv.${after}`))
+    if (after > before) log.unshift(makeDiaryEntry('levelup', `เลเวลอัปเป็น Lv.${after} (+${COINS.levelUp} เหรียญ)`))
     if (log.length) addDiary(...log)
 
-    return { ok: true, exp, levelUp: after > before ? after : null }
+    return { ok: true, exp, coins, levelUp: after > before ? after : null }
   }
 
   const care = {
-    // ห้องครัว: กินอาหาร
+    // ห้องครัว: กินอาหาร (ใช้ของในกระเป๋า 1 ชิ้น ยกเว้นข้าวเม็ดที่ฟรี)
     feed(foodKey) {
       const p = current()
       if (p.asleep) return ASLEEP
+      if (foodCount(p, foodKey) <= 0) return { ok: false, say: 'หมดแล้ว ไปซื้อที่ร้านนะ 🛒' }
       if (p.food >= FULL) return { ok: false, say: 'อิ่มแล้ว 😋' }
       const food = FOODS[foodKey]
       const add = { food: food.food }
       if (food.fun) add.fun = food.fun
-      return applyCare(p, { add, exp: food.exp, entries: [['feed', `กิน${food.label}`]] })
+      const set = {}
+      if (food.price > 0) set.inventory = { ...p.inventory, [foodKey]: p.inventory[foodKey] - 1 }
+      return applyCare(p, { add, set, exp: food.exp, entries: [['feed', `กิน${food.label}`]] })
+    },
+    // ร้านค้า: ซื้ออาหาร 1 ชิ้น
+    buy(foodKey) {
+      const p = current()
+      const { price } = FOODS[foodKey]
+      if (p.coins < price) return { ok: false, say: 'เหรียญไม่พอ' }
+      updatePet({ ...p, coins: p.coins - price, inventory: { ...p.inventory, [foodKey]: (p.inventory[foodKey] ?? 0) + 1 } })
+      return { ok: true }
     },
     // ห้องนั่งเล่น: ลูบตัว (เรียกทุกครั้งที่ลูบได้ระยะครบ PAT.distance)
     pat() {
@@ -286,6 +311,7 @@ export default function Game({ store, account, notice: initialNotice }) {
           }
         />
       ))}
+      <Route path="/shop" element={<Shop pet={pet} onBuy={care.buy} />} />
       <Route path="/diary" element={<Diary pet={pet} diary={diary} now={now} />} />
       <Route
         path="/settings"

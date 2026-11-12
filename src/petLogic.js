@@ -1,5 +1,5 @@
 // ===== Logic ของสัตว์เลี้ยง (ไม่มี React ในไฟล์นี้ เป็นฟังก์ชันคำนวณล้วน ๆ) =====
-import { DATA_VERSION, DEFAULT_SPECIES, EXP_PER_LEVEL, LOW, SLEEP, START_VALUE } from './config'
+import { DATA_VERSION, DEFAULT_SPECIES, EXP_PER_LEVEL, FOODS, LOW, SLEEP, START_COINS, START_VALUE, STARTER_FOODS } from './config'
 import { getSpecies, isSpecies } from './species'
 
 export const MINUTE = 60 * 1000
@@ -20,6 +20,9 @@ export function createPet({ name, species = DEFAULT_SPECIES }, now) {
     energy: START_VALUE,
     asleep: false, // true = ปิดไฟนอนอยู่ (พลังงานฟื้นแทนที่จะลด)
     exp: 0,
+    coins: START_COINS,
+    inventory: { ...STARTER_FOODS }, // อาหารที่มี { meat: 2, ... } (ข้าวเม็ดฟรีไม่ต้องเก็บ)
+    lastBonusDay: null, // วันที่รับโบนัสรายวันล่าสุด เช่น '2026-11-13'
     adoptedAt: now,
     lastUpdated: now, // เวลาล่าสุดที่คำนวณค่าสถานะ (Timestamp)
   }
@@ -45,8 +48,34 @@ export function normalizePet(raw) {
     clean: num(pet.clean, START_VALUE),
     energy: num(pet.energy, START_VALUE),
     asleep: pet.asleep === true,
+    // รุ่น 3 → 4: เพิ่มเหรียญ + กระเป๋าอาหาร
+    coins: Math.max(0, Math.floor(num(pet.coins, START_COINS))),
+    inventory: normalizeInventory(pet.inventory ?? STARTER_FOODS),
+    lastBonusDay: typeof pet.lastBonusDay === 'string' ? pet.lastBonusDay : null,
     adoptedAt: num(pet.adoptedAt, pet.lastUpdated),
   }
+}
+
+// เก็บเฉพาะอาหารที่มีอยู่จริงในร้าน และจำนวนเป็นจำนวนเต็มไม่ติดลบ
+function normalizeInventory(raw) {
+  const inventory = {}
+  for (const key of Object.keys(FOODS)) {
+    const count = Math.floor(num(raw?.[key], 0))
+    if (FOODS[key].price > 0 && count > 0) inventory[key] = count
+  }
+  return inventory
+}
+
+// จำนวนอาหารที่มี (ข้าวเม็ดฟรี = ไม่จำกัด → Infinity)
+export function foodCount(pet, key) {
+  return FOODS[key].price === 0 ? Infinity : (pet.inventory[key] ?? 0)
+}
+
+// วันที่แบบ '2026-11-13' ตามเวลาในเครื่อง (ใช้เช็กโบนัสรายวัน)
+export function dayKey(ts) {
+  const d = new Date(ts)
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 // เปลี่ยนค่าตามจำนวนชั่วโมงที่ผ่านไป (แต่ละชนิดลดเร็วไม่เท่ากัน ดู species.js)
