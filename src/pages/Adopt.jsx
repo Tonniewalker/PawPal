@@ -7,7 +7,7 @@ import { SPECIES, SPECIES_LIST } from '../species'
 // แปลงอัตราค่าลดต่อชั่วโมงเป็นคำ ให้ผู้เล่นเทียบนิสัยแต่ละชนิดได้ง่าย ๆ
 function speedLabel(rate) {
   if (rate >= 10) return { text: 'ลดเร็ว', className: 'bg-berry/10 text-berry' }
-  if (rate <= 6) return { text: 'ลดช้า', className: 'bg-leaf/15 text-[#3E7A2A]' }
+  if (rate <= 5) return { text: 'ลดช้า', className: 'bg-leaf/15 text-[#3E7A2A]' }
   return { text: 'ปกติ', className: 'bg-line text-ink/70' }
 }
 
@@ -76,13 +76,13 @@ export default function Adopt({ now, onAdopt }) {
           {species.emoji} {species.label}
         </p>
         <p className="mt-0.5 text-[15px] text-ink/70">{species.trait}</p>
-        <ul className="mt-3 grid grid-cols-3 gap-2 text-center text-sm">
+        <ul className="mt-3 grid grid-cols-4 gap-1.5 text-center text-sm">
           {STATS.map((stat) => {
             const speed = speedLabel(species.decay[stat.key])
             return (
-              <li key={stat.key} className="rounded-xl bg-paper px-1 py-1.5">
-                <span className="block text-ink/70">
-                  {stat.icon} {stat.label}
+              <li key={stat.key} className="rounded-xl bg-paper px-0.5 py-1.5">
+                <span className="block text-xs text-ink/70">
+                  {stat.icon} {stat.short}
                 </span>
                 <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${speed.className}`}>
                   {speed.text}

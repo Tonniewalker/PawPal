@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import AccountSection from '../components/AccountSection'
+import PageHeader from '../components/PageHeader'
 import { getSpecies } from '../species'
 
 // ปุ่มจำลองว่าผู้ใช้ปิดแอปไปนานเท่าไหร่ (ใช้ตอนพรีเซนต์)
@@ -29,8 +30,9 @@ export default function Settings({ pet, account, onRename, onSimulateAway, onRes
   }
 
   return (
-    <div className="space-y-8 px-5 pb-8">
-      <h1 className="text-[28px] font-bold leading-tight">ตั้งค่า</h1>
+    <div className="mx-auto min-h-screen max-w-[440px] bg-paper pb-8">
+      <PageHeader title="ตั้งค่า" />
+      <div className="space-y-8 px-5 pt-2">
 
       <AccountSection account={account} />
 
@@ -116,6 +118,7 @@ export default function Settings({ pet, account, onRename, onSimulateAway, onRes
           </div>
         )}
       </section>
+      </div>
     </div>
   )
 }

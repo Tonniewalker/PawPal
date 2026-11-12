@@ -1,33 +1,56 @@
 import { NavLink } from 'react-router-dom'
+import { STATS } from '../config'
+import { gaugeColor, ROOMS } from './rooms'
 
-const LINKS = [
-  { to: '/', label: 'บ้าน', icon: '🏠' },
-  { to: '/diary', label: 'สมุดบันทึก', icon: '📖' },
-  { to: '/settings', label: 'ตั้งค่า', icon: '⚙️' },
-]
-
-// เมนูด้านล่างแบบแอปมือถือ (React Router: NavLink รู้เองว่าตอนนี้อยู่หน้าไหน)
-export default function BottomNav() {
+function Gauge({ icon, value, active }) {
   return (
-    <nav className="sticky bottom-0 z-10 border-t-2 border-line bg-white pb-[env(safe-area-inset-bottom)]">
-      <ul className="grid grid-cols-3">
-        {LINKS.map((link) => (
-          <li key={link.to}>
+    <span
+      className={`relative flex h-[58px] w-[58px] items-center justify-center overflow-hidden rounded-full border-[3px] bg-white shadow-[0_3px_0_rgba(46,58,89,0.18)] transition-transform ${
+        active ? 'scale-110 border-ink' : 'border-white'
+      }`}
+    >
+      {value != null && (
+        <span
+          className="absolute inset-x-0 bottom-0 transition-[height] duration-500"
+          style={{ height: `${Math.round(value)}%`, background: gaugeColor(value) }}
+        />
+      )}
+      <span className="relative text-[28px] leading-none" aria-hidden="true">
+        {icon}
+      </span>
+    </span>
+  )
+}
+
+// แถบล่างแบบ My Talking Tom: แต่ละปุ่ม = ไปห้องนั้น + หลอดบอกค่าที่ห้องนั้นดูแล
+export default function BottomNav({ pet, onShop }) {
+  // เรียงตามลำดับห้อง: นั่งเล่น ครัว ห้องน้ำ ห้องนอน
+  const rooms = Object.keys(ROOMS).map((room) => {
+    const stat = STATS.find((s) => s.room === room)
+    return { room, stat, value: pet[stat.key], ...ROOMS[room] }
+  })
+
+  return (
+    <nav className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-white/95 via-white/80 to-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-8">
+      <ul className="flex justify-around">
+        <li>
+          <button type="button" onClick={onShop} className="flex flex-col items-center gap-1" aria-label="ร้านค้า">
+            <Gauge icon="🛒" />
+            <span className="text-[11px] font-semibold text-ink/70">ร้านค้า</span>
+          </button>
+        </li>
+        {rooms.map(({ room, stat, value, path, navLabel }) => (
+          <li key={room}>
             <NavLink
-              to={link.to}
+              to={path}
               end
-              className={({ isActive }) =>
-                `flex flex-col items-center gap-0.5 py-2.5 text-[13px] ${
-                  isActive ? 'font-semibold text-ink' : 'text-ink/50'
-                }`
-              }
+              aria-label={`${navLabel} (${stat.label} ${Math.round(value)})`}
+              className="flex flex-col items-center gap-1"
             >
               {({ isActive }) => (
                 <>
-                  <span className={`text-xl transition-transform ${isActive ? 'scale-110' : 'grayscale'}`} aria-hidden="true">
-                    {link.icon}
-                  </span>
-                  {link.label}
+                  <Gauge icon={stat.icon} value={value} active={isActive} />
+                  <span className={`text-[11px] font-semibold ${isActive ? 'text-ink' : 'text-ink/70'}`}>{navLabel}</span>
                 </>
               )}
             </NavLink>

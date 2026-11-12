@@ -1,16 +1,29 @@
-import { ACTIONS } from '../config'
+import PageHeader from '../components/PageHeader'
+import StatBar from '../components/StatBar'
+import { STATS } from '../config'
 import { DAY } from '../petLogic'
 import { getSpecies } from '../species'
 
 const ICONS = {
   adopt: '🐾', // ใช้อิโมจิของชนิดสัตว์แทน (ดูด้านล่าง)
   feed: '🍖',
-  water: '💧',
+  water: '💧', // บันทึกเก่าก่อนรวมน้ำเข้ากับอาหาร
   pat: '🤚',
+  wash: '🛁',
+  sleep: '🌙',
+  wake: '☀️',
   levelup: '⭐',
   rename: '✏️',
   return: '👋',
 }
+
+// การ์ดนับจำนวนครั้งที่ดูแล
+const COUNTS = [
+  { types: ['feed', 'water'], icon: '🍖', label: 'กิน' },
+  { types: ['pat'], icon: '🤚', label: 'ลูบตัว' },
+  { types: ['wash'], icon: '🛁', label: 'อาบน้ำ' },
+  { types: ['sleep'], icon: '🌙', label: 'เข้านอน' },
+]
 
 const startOfDay = (ts) => {
   const d = new Date(ts)
@@ -31,11 +44,7 @@ export default function Diary({ pet, diary, now }) {
   const daysTogether = Math.floor((startOfDay(now) - startOfDay(pet.adoptedAt)) / DAY) + 1
 
   // นับจำนวนครั้งที่ดูแลแต่ละแบบ
-  const counts = Object.keys(ACTIONS).map((key) => ({
-    key,
-    ...ACTIONS[key],
-    count: diary.filter((entry) => entry.type === key).length,
-  }))
+  const counts = COUNTS.map((c) => ({ ...c, count: diary.filter((entry) => c.types.includes(entry.type)).length }))
 
   // จัดกลุ่มบันทึกตามวัน (diary เรียงใหม่ → เก่าอยู่แล้ว)
   const groups = []
@@ -47,38 +56,47 @@ export default function Diary({ pet, diary, now }) {
   }
 
   return (
-    <div className="px-5 pb-6">
-      <h1 className="text-[28px] font-bold leading-tight">สมุดบันทึกของ {pet.name}</h1>
-      <p className="mt-1 text-[15px] text-ink/70">อยู่ด้วยกันมาเป็นวันที่ {daysTogether}</p>
+    <div className="mx-auto min-h-screen max-w-[440px] bg-paper pb-8">
+      <PageHeader title={`สมุดบันทึกของ ${pet.name}`} />
+      <div className="px-5">
+        <p className="text-[15px] text-ink/70">อยู่ด้วยกันมาเป็นวันที่ {daysTogether}</p>
 
-      <ul className="mt-5 grid grid-cols-3 gap-3 text-center">
-        {counts.map((c) => (
-          <li key={c.key} className="rounded-2xl border-2 border-line bg-white py-3">
-            <span className="block text-2xl" aria-hidden="true">{c.icon}</span>
-            <span className="block text-xl font-bold tabular-nums">
-              {c.count} <span className="text-sm font-normal">ครั้ง</span>
-            </span>
-            <span className="block text-xs text-ink/60">{c.label}</span>
-          </li>
-        ))}
-      </ul>
+        <section className="mt-4 space-y-2.5 rounded-2xl border-2 border-line bg-white p-4">
+          <h2 className="sr-only">สถานะตอนนี้</h2>
+          {STATS.map((s) => (
+            <StatBar key={s.key} icon={s.icon} label={s.label} value={pet[s.key]} />
+          ))}
+        </section>
 
-      <div className="mt-6 space-y-6">
-        {groups.map((group) => (
-          <section key={group.label}>
-            <h2 className="text-lg font-bold">{group.label}</h2>
-            <ol className="mt-2 border-l-2 border-line pl-4">
-              {group.entries.map((entry) => (
-                <li key={entry.id} className="relative flex items-center gap-3 py-2">
-                  <span className="absolute -left-[23px] h-3 w-3 rounded-full border-2 border-white bg-[#4AA3DF]" />
-                  <span className="w-12 shrink-0 text-sm tabular-nums text-ink/60">{clock(entry.at)}</span>
-                  <span aria-hidden="true">{icons[entry.type] ?? '•'}</span>
-                  <span className="text-[15px]">{entry.text}</span>
-                </li>
-              ))}
-            </ol>
-          </section>
-        ))}
+        <ul className="mt-4 grid grid-cols-4 gap-2 text-center">
+          {counts.map((c) => (
+            <li key={c.label} className="rounded-2xl border-2 border-line bg-white py-3">
+              <span className="block text-2xl" aria-hidden="true">{c.icon}</span>
+              <span className="block text-xl font-bold tabular-nums">
+                {c.count} <span className="text-sm font-normal">ครั้ง</span>
+              </span>
+              <span className="block text-xs text-ink/60">{c.label}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-6 space-y-6">
+          {groups.map((group) => (
+            <section key={group.label}>
+              <h2 className="text-lg font-bold">{group.label}</h2>
+              <ol className="mt-2 border-l-2 border-line pl-4">
+                {group.entries.map((entry) => (
+                  <li key={entry.id} className="relative flex items-center gap-3 py-2">
+                    <span className="absolute -left-[23px] h-3 w-3 rounded-full border-2 border-white bg-[#4AA3DF]" />
+                    <span className="w-12 shrink-0 text-sm tabular-nums text-ink/60">{clock(entry.at)}</span>
+                    <span aria-hidden="true">{icons[entry.type] ?? '•'}</span>
+                    <span className="text-[15px]">{entry.text}</span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ))}
+        </div>
       </div>
     </div>
   )

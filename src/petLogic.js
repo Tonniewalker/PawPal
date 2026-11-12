@@ -1,5 +1,5 @@
 // ===== Logic ของสัตว์เลี้ยง (ไม่มี React ในไฟล์นี้ เป็นฟังก์ชันคำนวณล้วน ๆ) =====
-import { DATA_VERSION, DEFAULT_SPECIES, EXP_PER_LEVEL, LOW, START_VALUE } from './config'
+import { DATA_VERSION, DEFAULT_SPECIES, EXP_PER_LEVEL, LOW, SLEEP, START_VALUE } from './config'
 import { getSpecies, isSpecies } from './species'
 
 export const MINUTE = 60 * 1000
@@ -7,6 +7,7 @@ export const HOUR = 60 * MINUTE
 export const DAY = 24 * HOUR
 
 const clamp = (n) => Math.min(100, Math.max(0, n))
+const num = (v, fallback) => (typeof v === 'number' && Number.isFinite(v) ? v : fallback)
 
 export function createPet({ name, species = DEFAULT_SPECIES }, now) {
   return {
@@ -14,8 +15,10 @@ export function createPet({ name, species = DEFAULT_SPECIES }, now) {
     species,
     name,
     food: START_VALUE,
-    water: START_VALUE,
     fun: START_VALUE,
+    clean: START_VALUE,
+    energy: START_VALUE,
+    asleep: false, // true = ปิดไฟนอนอยู่ (พลังงานฟื้นแทนที่จะลด)
     exp: 0,
     adoptedAt: now,
     lastUpdated: now, // เวลาล่าสุดที่คำนวณค่าสถานะ (Timestamp)
@@ -27,31 +30,42 @@ export function createPet({ name, species = DEFAULT_SPECIES }, now) {
 // ทุกครั้งที่เพิ่มฟิลด์ใหม่ในอนาคต (เช่น coins) ให้เติมค่าเริ่มต้นตรงนี้ที่เดียว
 export function normalizePet(raw) {
   if (!raw || typeof raw !== 'object' || typeof raw.name !== 'string') return null
-  if (!['food', 'water', 'fun', 'exp', 'lastUpdated'].every((k) => typeof raw[k] === 'number')) return null
+  if (!['food', 'fun', 'exp', 'lastUpdated'].every((k) => typeof raw[k] === 'number')) return null
 
+  const pet = { ...raw }
+  // รุ่น 2 → 3: รวม "น้ำ" เข้ากับ "ความอิ่ม" (เอาค่าเฉลี่ย) และเพิ่มความสะอาด/พลังงาน/การนอน
+  if (typeof pet.water === 'number') {
+    pet.food = (pet.food + pet.water) / 2
+    delete pet.water
+  }
   return {
-    ...raw,
+    ...pet,
     version: DATA_VERSION,
-    species: isSpecies(raw.species) ? raw.species : DEFAULT_SPECIES, // รุ่น 1 มีแต่หมา
-    adoptedAt: typeof raw.adoptedAt === 'number' ? raw.adoptedAt : raw.lastUpdated,
+    species: isSpecies(pet.species) ? pet.species : DEFAULT_SPECIES, // รุ่น 1 มีแต่หมา
+    clean: num(pet.clean, START_VALUE),
+    energy: num(pet.energy, START_VALUE),
+    asleep: pet.asleep === true,
+    adoptedAt: num(pet.adoptedAt, pet.lastUpdated),
   }
 }
 
-// ลดค่าทั้ง 3 ตามจำนวนชั่วโมงที่ผ่านไป (แต่ละชนิดลดเร็วไม่เท่ากัน ดู species.js)
+// เปลี่ยนค่าตามจำนวนชั่วโมงที่ผ่านไป (แต่ละชนิดลดเร็วไม่เท่ากัน ดู species.js)
+// ตอนหลับ: พลังงานฟื้นขึ้นแทนที่จะลด ส่วนค่าอื่นลดตามปกติ
 export function decay(pet, hours) {
   const rate = getSpecies(pet.species).decay
   return {
     ...pet,
     food: clamp(pet.food - rate.food * hours),
-    water: clamp(pet.water - rate.water * hours),
     fun: clamp(pet.fun - rate.fun * hours),
+    clean: clamp(pet.clean - rate.clean * hours),
+    energy: clamp(pet.asleep ? pet.energy + SLEEP.recoverPerHour * hours : pet.energy - rate.energy * hours),
   }
 }
 
 // ★ หัวใจของแอป ★
-// เวลาตอนนี้ − เวลาที่บันทึกไว้ = เวลาที่ผ่านไป → ลดค่าตามนั้น
-// แล้วเปลี่ยน lastUpdated เป็นเวลาตอนนี้ (ไม่งั้นครั้งหน้าจะลบซ้ำจากเวลาเดิม)
-// หมายเหตุ: คำนวณทีละช่วงหรือรวดเดียวได้ผลเท่ากัน เพราะค่าลดแบบเส้นตรงและหยุดที่ 0
+// เวลาตอนนี้ − เวลาที่บันทึกไว้ = เวลาที่ผ่านไป → เปลี่ยนค่าตามนั้น
+// แล้วเปลี่ยน lastUpdated เป็นเวลาตอนนี้ (ไม่งั้นครั้งหน้าจะคิดซ้ำจากเวลาเดิม)
+// หมายเหตุ: คำนวณทีละช่วงหรือรวดเดียวได้ผลเท่ากัน เพราะค่าเปลี่ยนแบบเส้นตรงและหยุดที่ 0 / 100
 // เลยไม่จำเป็นต้องบันทึกข้อมูลทุกนาที บันทึกเฉพาะตอนผู้เล่นทำอะไรก็พอ
 export function applyTime(pet, now) {
   const hours = Math.max(0, (now - pet.lastUpdated) / HOUR)
@@ -65,22 +79,26 @@ export function makeDiaryEntry(type, text, at = Date.now()) {
 
 // อารมณ์คำนวณจากตัวเลข ไม่ต้องเก็บแยก (ข้อมูลจะไม่มีทางขัดกันเอง)
 const MOODS = {
+  asleep: { face: 'sleep', label: 'หลับอยู่', emoji: '💤' },
   happy: { face: 'happy', label: 'มีความสุขมาก', emoji: '🥰' },
   ok: { face: 'normal', label: 'อารมณ์ดี', emoji: '😊' },
   hungry: { face: 'hungry', label: 'หิวข้าว', emoji: '🤤' },
-  thirsty: { face: 'thirsty', label: 'หิวน้ำ', emoji: '🥵' },
+  tired: { face: 'thirsty', label: 'เหนื่อย', emoji: '🥱' }, // หน้าหอบลิ้นห้อย
+  dirty: { face: 'normal', label: 'ตัวเลอะ', emoji: '🫧' },
   lonely: { face: 'sad', label: 'เหงา', emoji: '🥺' },
   sad: { face: 'sad', label: 'เศร้ามาก', emoji: '😭' },
 }
 
 export function getMood(pet) {
-  const { food, water, fun } = pet
-  const lowCount = [food, water, fun].filter((v) => v < LOW).length
+  if (pet.asleep) return MOODS.asleep
+  const { food, fun, clean, energy } = pet
+  const lowCount = [food, fun, clean, energy].filter((v) => v < LOW).length
   if (lowCount >= 2) return MOODS.sad
-  if (water < LOW) return MOODS.thirsty
   if (food < LOW) return MOODS.hungry
+  if (energy < LOW) return MOODS.tired
   if (fun < LOW) return MOODS.lonely
-  if (food >= 70 && water >= 70 && fun >= 70) return MOODS.happy
+  if (clean < LOW) return MOODS.dirty
+  if (food >= 70 && fun >= 70 && clean >= 70 && energy >= 70) return MOODS.happy
   return MOODS.ok
 }
 

@@ -35,7 +35,7 @@ export default function Welcome({ onGuest, onSignIn }) {
 
       <h1 className="mt-6 text-[32px] font-bold leading-tight">🐾 {APP_NAME}</h1>
       <p className="mt-1 text-base leading-relaxed text-ink/70">
-        รับสัตว์เลี้ยงมาดูแล ให้อาหาร ให้น้ำ และเล่นด้วยทุกวัน
+        รับสัตว์เลี้ยงมาดูแล ให้อาหาร อาบน้ำ เล่นด้วย และพาเข้านอนทุกวัน
       </p>
 
       <div className="mt-auto space-y-3 pt-8">

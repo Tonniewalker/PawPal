@@ -1,5 +1,5 @@
 // ===== ชนิดสัตว์เลี้ยงทั้งหมด =====
-// แต่ละชนิดมีนิสัยต่างกัน = ค่าอิ่ม/น้ำ/ความสุข ลดลงเร็วไม่เท่ากัน (หน่วยต่อ 1 ชั่วโมง)
+// แต่ละชนิดมีนิสัยต่างกัน = ค่าอิ่ม/สุข/สะอาด/พลังงาน ลดลงเร็วไม่เท่ากัน (หน่วยต่อ 1 ชั่วโมง)
 //
 // อยากเพิ่มชนิดใหม่:
 //   1) เพิ่มข้อมูลในตัวแปร SPECIES ด้านล่าง
@@ -14,16 +14,16 @@ export const SPECIES = {
     emoji: '🐶',
     trait: 'ร่าเริง ดูแลง่าย ทุกค่าลดพอ ๆ กัน',
     placeholder: 'เช่น ไอ้ทอง',
-    decay: { food: 8, water: 10, fun: 6 },
+    decay: { food: 8, fun: 7, clean: 6, energy: 6 },
   },
   cat: {
     id: 'cat',
     noun: 'แมว',
     label: 'น้องแมว',
     emoji: '🐱',
-    trait: 'รักอิสระ ไม่ค่อยเหงา แต่ช่างกิน',
+    trait: 'รักสะอาด ไม่ค่อยเหงา แต่ช่างกิน',
     placeholder: 'เช่น ส้มโอ',
-    decay: { food: 10, water: 7, fun: 4 },
+    decay: { food: 10, fun: 4, clean: 3, energy: 5 },
   },
   rabbit: {
     id: 'rabbit',
@@ -32,25 +32,25 @@ export const SPECIES = {
     emoji: '🐰',
     trait: 'หิวบ่อยมาก ต้องเติมอาหารเรื่อย ๆ',
     placeholder: 'เช่น ปุยฝ้าย',
-    decay: { food: 12, water: 8, fun: 5 },
+    decay: { food: 12, fun: 5, clean: 5, energy: 6 },
   },
   fox: {
     id: 'fox',
     noun: 'จิ้งจอก',
     label: 'น้องจิ้งจอก',
     emoji: '🦊',
-    trait: 'ขี้เล่น เหงาง่าย ชอบให้ลูบหัว',
+    trait: 'ขี้เล่น เหงาง่าย ตัวเลอะง่าย',
     placeholder: 'เช่น ส้มจี๊ด',
-    decay: { food: 7, water: 8, fun: 10 },
+    decay: { food: 7, fun: 10, clean: 10, energy: 6 },
   },
   bird: {
     id: 'bird',
     noun: 'นก',
     label: 'น้องนก',
     emoji: '🐦',
-    trait: 'ตัวเล็ก กินน้อย แต่หิวน้ำเร็วมาก',
+    trait: 'ตัวเล็ก กินน้อย แต่เหนื่อยง่าย ต้องนอนบ่อย',
     placeholder: 'เช่น จิ๊บ',
-    decay: { food: 6, water: 13, fun: 6 },
+    decay: { food: 6, fun: 7, clean: 5, energy: 11 },
   },
 }
 

@@ -1,6 +1,6 @@
 // ===== ชิ้นส่วนที่สัตว์ทุกชนิดใช้ร่วมกัน =====
 // สัตว์ทุกตัววาดในกรอบ 200×200 หัวอยู่ราว ๆ (100, 84) พื้นอยู่ที่ y = 193
-// face: 'happy' | 'normal' | 'hungry' | 'thirsty' | 'sad'
+// face: 'happy' | 'normal' | 'hungry' | 'thirsty' (ใช้เป็นหน้าเหนื่อยหอบ) | 'sad' | 'sleep'
 
 export const INK = '#3A2A22'
 export const TONGUE = '#F27A8A'
@@ -9,8 +9,17 @@ export const DROP = '#8FD0F5'
 const COLLAR = '#E5484D'
 const TAG = '#FFC93C'
 
-// ตา: ยิ้มตาปิด / เศร้ามีคิ้วตกกับน้ำตา / ตากลม (หิวตาโต หิวน้ำตาเล็ก)
+// ตา: ยิ้มตาปิด / หลับ / เศร้ามีคิ้วตกกับน้ำตา / ตากลม (หิวตาโต เหนื่อยตาเล็ก)
 export function Eyes({ face, lx = 80, rx = 120, y = 80, size = 1 }) {
+  if (face === 'sleep') {
+    const w = 8 * size
+    return (
+      <g fill="none" stroke={INK} strokeWidth="3.5" strokeLinecap="round">
+        <path d={`M${lx - w} ${y} Q${lx} ${y + 6} ${lx + w} ${y}`} />
+        <path d={`M${rx - w} ${y} Q${rx} ${y + 6} ${rx + w} ${y}`} />
+      </g>
+    )
+  }
   if (face === 'happy') {
     const w = 8 * size
     return (
