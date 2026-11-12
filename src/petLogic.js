@@ -1,4 +1,4 @@
-// ===== Logic ของสัตว์เลี้ยง (ไม่มี React ในไฟล์นี้ เป็นฟังก์ชันคำนวณล้วน ๆ) =====
+// ===== Logic ของสัตว์เลี้ยง =====
 import { DATA_VERSION, DEFAULT_SPECIES, EXP_PER_LEVEL, FOODS, LOW, SLEEP, START_COINS, START_VALUE, STARTER_FOODS } from './config'
 import { getSpecies, isSpecies } from './species'
 
@@ -18,25 +18,26 @@ export function createPet({ name, species = DEFAULT_SPECIES }, now) {
     fun: START_VALUE,
     clean: START_VALUE,
     energy: START_VALUE,
-    asleep: false, // true = ปิดไฟนอนอยู่ (พลังงานฟื้นแทนที่จะลด)
+    asleep: false, // กำลังนอน
     exp: 0,
     coins: START_COINS,
-    inventory: { ...STARTER_FOODS }, // อาหารที่มี { meat: 2, ... } (ข้าวเม็ดฟรีไม่ต้องเก็บ)
-    lastBonusDay: null, // วันที่รับโบนัสรายวันล่าสุด เช่น '2026-11-13'
+    inventory: { ...STARTER_FOODS }, // อาหารที่มี
+    lastBonusDay: null, // วันที่รับโบนัสรายวันล่าสุด
+    bestScore: 0, // คะแนนสูงสุดมินิเกม
+    gameDay: null, // วันที่เล่นมินิเกมล่าสุด
+    gameCoinsToday: 0, // เหรียญจากมินิเกมในวันนั้น
     adoptedAt: now,
-    lastUpdated: now, // เวลาล่าสุดที่คำนวณค่าสถานะ (Timestamp)
+    lastUpdated: now, // เวลาที่คำนวณค่าสถานะล่าสุด
   }
 }
 
-// ตรวจและแปลงข้อมูลที่โหลดมา (จาก localStorage หรือคลาวด์) ให้เป็นรูปแบบรุ่นปัจจุบัน
-// ข้อมูลเสียหรือขาดค่าที่จำเป็น → คืน null (ถือว่ายังไม่มีสัตว์เลี้ยง)
-// ทุกครั้งที่เพิ่มฟิลด์ใหม่ในอนาคต (เช่น coins) ให้เติมค่าเริ่มต้นตรงนี้ที่เดียว
+// แปลงข้อมูลที่โหลดมาเป็นรุ่นปัจจุบัน
 export function normalizePet(raw) {
   if (!raw || typeof raw !== 'object' || typeof raw.name !== 'string') return null
   if (!['food', 'fun', 'exp', 'lastUpdated'].every((k) => typeof raw[k] === 'number')) return null
 
   const pet = { ...raw }
-  // รุ่น 2 → 3: รวม "น้ำ" เข้ากับ "ความอิ่ม" (เอาค่าเฉลี่ย) และเพิ่มความสะอาด/พลังงาน/การนอน
+  // รวมค่าน้ำเข้ากับความอิ่ม
   if (typeof pet.water === 'number') {
     pet.food = (pet.food + pet.water) / 2
     delete pet.water
@@ -44,19 +45,21 @@ export function normalizePet(raw) {
   return {
     ...pet,
     version: DATA_VERSION,
-    species: isSpecies(pet.species) ? pet.species : DEFAULT_SPECIES, // รุ่น 1 มีแต่หมา
+    species: isSpecies(pet.species) ? pet.species : DEFAULT_SPECIES,
     clean: num(pet.clean, START_VALUE),
     energy: num(pet.energy, START_VALUE),
     asleep: pet.asleep === true,
-    // รุ่น 3 → 4: เพิ่มเหรียญ + กระเป๋าอาหาร
     coins: Math.max(0, Math.floor(num(pet.coins, START_COINS))),
     inventory: normalizeInventory(pet.inventory ?? STARTER_FOODS),
     lastBonusDay: typeof pet.lastBonusDay === 'string' ? pet.lastBonusDay : null,
+    bestScore: Math.max(0, Math.floor(num(pet.bestScore, 0))),
+    gameDay: typeof pet.gameDay === 'string' ? pet.gameDay : null,
+    gameCoinsToday: Math.max(0, Math.floor(num(pet.gameCoinsToday, 0))),
     adoptedAt: num(pet.adoptedAt, pet.lastUpdated),
   }
 }
 
-// เก็บเฉพาะอาหารที่มีอยู่จริงในร้าน และจำนวนเป็นจำนวนเต็มไม่ติดลบ
+// ตรวจกระเป๋าอาหาร
 function normalizeInventory(raw) {
   const inventory = {}
   for (const key of Object.keys(FOODS)) {
@@ -66,20 +69,19 @@ function normalizeInventory(raw) {
   return inventory
 }
 
-// จำนวนอาหารที่มี (ข้าวเม็ดฟรี = ไม่จำกัด → Infinity)
+// จำนวนอาหารที่มี (ของฟรี = Infinity)
 export function foodCount(pet, key) {
   return FOODS[key].price === 0 ? Infinity : (pet.inventory[key] ?? 0)
 }
 
-// วันที่แบบ '2026-11-13' ตามเวลาในเครื่อง (ใช้เช็กโบนัสรายวัน)
+// วันที่แบบ YYYY-MM-DD
 export function dayKey(ts) {
   const d = new Date(ts)
   const pad = (n) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
-// เปลี่ยนค่าตามจำนวนชั่วโมงที่ผ่านไป (แต่ละชนิดลดเร็วไม่เท่ากัน ดู species.js)
-// ตอนหลับ: พลังงานฟื้นขึ้นแทนที่จะลด ส่วนค่าอื่นลดตามปกติ
+// เปลี่ยนค่าตามเวลาที่ผ่านไป (ตอนหลับพลังงานเพิ่ม)
 export function decay(pet, hours) {
   const rate = getSpecies(pet.species).decay
   return {
@@ -91,11 +93,7 @@ export function decay(pet, hours) {
   }
 }
 
-// ★ หัวใจของแอป ★
-// เวลาตอนนี้ − เวลาที่บันทึกไว้ = เวลาที่ผ่านไป → เปลี่ยนค่าตามนั้น
-// แล้วเปลี่ยน lastUpdated เป็นเวลาตอนนี้ (ไม่งั้นครั้งหน้าจะคิดซ้ำจากเวลาเดิม)
-// หมายเหตุ: คำนวณทีละช่วงหรือรวดเดียวได้ผลเท่ากัน เพราะค่าเปลี่ยนแบบเส้นตรงและหยุดที่ 0 / 100
-// เลยไม่จำเป็นต้องบันทึกข้อมูลทุกนาที บันทึกเฉพาะตอนผู้เล่นทำอะไรก็พอ
+// คำนวณค่าสถานะ ณ เวลา now จาก lastUpdated
 export function applyTime(pet, now) {
   const hours = Math.max(0, (now - pet.lastUpdated) / HOUR)
   return { ...decay(pet, hours), lastUpdated: now }
@@ -106,7 +104,7 @@ export function makeDiaryEntry(type, text, at = Date.now()) {
   return { id: `${at}-${Math.random().toString(36).slice(2, 7)}`, type, text, at }
 }
 
-// อารมณ์คำนวณจากตัวเลข ไม่ต้องเก็บแยก (ข้อมูลจะไม่มีทางขัดกันเอง)
+// อารมณ์ตามค่าสถานะ
 const MOODS = {
   asleep: { face: 'sleep', label: 'หลับอยู่', emoji: '💤' },
   happy: { face: 'happy', label: 'มีความสุขมาก', emoji: '🥰' },
@@ -131,7 +129,7 @@ export function getMood(pet) {
   return MOODS.ok
 }
 
-// เลเวลคำนวณจาก EXP: ทุก ๆ 100 EXP ขึ้น 1 เลเวล
+// เลเวลจาก EXP
 export function getLevel(exp) {
   return {
     level: Math.floor(exp / EXP_PER_LEVEL) + 1,
@@ -139,7 +137,7 @@ export function getLevel(exp) {
   }
 }
 
-// โตตามเลเวล: ตัวใหญ่ขึ้นเรื่อย ๆ (ชื่อช่วงวัยตามชนิด เช่น ลูกแมว / แมววัยรุ่น)
+// ช่วงวัยตามเลเวล
 export function getStage(level, species) {
   const { noun } = getSpecies(species)
   if (level >= 6) return { name: `${noun}โตเต็มวัย`, scale: 1 }
@@ -147,7 +145,7 @@ export function getStage(level, species) {
   return { name: `ลูก${noun}`, scale: 0.8 }
 }
 
-// แปลงมิลลิวินาทีเป็นข้อความ เช่น "2 วัน 5 ชั่วโมง"
+// แปลงมิลลิวินาทีเป็นข้อความ
 export function formatDuration(ms) {
   const minutes = Math.floor(ms / MINUTE)
   const days = Math.floor(minutes / (24 * 60))
@@ -158,7 +156,7 @@ export function formatDuration(ms) {
   return `${Math.max(1, mins)} นาที`
 }
 
-// ช่วงเวลาของวัน ใช้เปลี่ยนสีท้องฟ้า
+// ช่วงเวลาของวัน
 export function getTimeOfDay(now) {
   const hour = new Date(now).getHours()
   if (hour >= 6 && hour < 17) return 'day'

@@ -4,7 +4,7 @@ import { Coin } from '../components/TopBar'
 import { FOODS } from '../config'
 import { foodCount } from '../petLogic'
 
-// ===== ร้านค้า: ใช้เหรียญซื้ออาหาร (ชุดแต่งตัวจะมาในเฟสถัดไป) =====
+// ===== ร้านค้า =====
 export default function Shop({ pet, onBuy }) {
   const [tab, setTab] = useState('food')
   const [flash, setFlash] = useState(null) // ชิ้นที่เพิ่งซื้อ (โชว์ +1)

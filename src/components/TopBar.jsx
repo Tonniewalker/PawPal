@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-// เหรียญ (วาดเอง ไม่ใช้อิโมจิ เพราะบางเครื่องไม่มีอิโมจิเหรียญ)
+// ไอคอนเหรียญ
 export function Coin({ size = 22 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
@@ -12,7 +12,7 @@ export function Coin({ size = 22 }) {
   )
 }
 
-// วงแหวนเลเวล: ส่วนสีเหลือง = EXP ที่สะสมในเลเวลนี้
+// วงแหวนเลเวล
 function LevelRing({ level, progress }) {
   const r = 24
   const len = 2 * Math.PI * r
@@ -44,7 +44,7 @@ function LevelRing({ level, progress }) {
 
 const pill = 'rounded-full bg-white/90 shadow-[0_3px_0_rgba(46,58,89,0.12)]'
 
-// แถบบนของหน้าห้อง: เลเวล + ชื่อ / เหรียญ / เมนู (สมุดบันทึก, ตั้งค่า)
+// แถบบน: เลเวล ชื่อ เหรียญ เมนู
 export default function TopBar({ level, progress, name, stageName, coins = 0 }) {
   const [menuOpen, setMenuOpen] = useState(false)
 

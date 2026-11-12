@@ -11,7 +11,7 @@ body {
   @apply font-sans text-ink;
 }
 
-/* ===== ฉาก: ท้องฟ้าเปลี่ยนตามเวลาจริง ===== */
+/* ===== ฉากท้องฟ้า ===== */
 .scene { background: #BFE3F5; }
 .scene-evening { background: #F7C8A6; }
 .scene-night { background: #2A3B6B; }
@@ -25,10 +25,10 @@ body {
 
 .star { position: absolute; width: 4px; height: 4px; border-radius: 9999px; background: #F4F0CF; }
 
-/* หางของลูกโป่งอิโมจิ: สามเหลี่ยมชี้ลงซ้าย (ไปทางหัวน้อง) */
+/* หางลูกโป่งคำพูด */
 .bubble-tail { clip-path: polygon(25% 0, 100% 0, 0 100%); }
 
-/* ===== ปุ่มแบบกดยุบได้ (อยู่ใน layer components เพื่อให้ class ของ Tailwind เปลี่ยนสีขอบทับได้) ===== */
+/* ===== ปุ่มแบบกดยุบ ===== */
 @layer components {
   .care-btn {
     border: 2px solid #DCE7F0;
@@ -46,7 +46,7 @@ body {
   outline-offset: 2px;
 }
 
-/* ===== Animation (ปิดอัตโนมัติถ้าผู้ใช้ตั้งค่าลดการเคลื่อนไหว) ===== */
+/* ===== Animation ===== */
 @media (prefers-reduced-motion: no-preference) {
   .dog-breathe {
     transform-origin: 50% 100%;
@@ -96,7 +96,7 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* ===== ฝักบัว: หยดน้ำตก ===== */
+/* ===== หยดน้ำฝักบัว ===== */
 .shower-drop {
   position: absolute;
   top: -10%;

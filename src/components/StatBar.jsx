@@ -1,7 +1,7 @@
 import { LOW } from '../config'
 import { gaugeColor } from './rooms'
 
-// หลอดแสดงค่า 0–100 (สีเดียวกับปุ่มห้องด้านล่าง) ถ้าต่ำกว่า LOW ตัวหนังสือเป็นสีแดง
+// หลอดค่าสถานะ 0–100
 export default function StatBar({ icon, label, value }) {
   const shown = Math.round(value)
   const low = value < LOW

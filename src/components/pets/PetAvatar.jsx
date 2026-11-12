@@ -1,21 +1,19 @@
 import { getPetBody } from './index'
 import { Hearts } from './parts'
 
-// คราบสกปรกบนตัว (ตำแหน่งในกรอบ 200×200)
+// ตำแหน่งคราบสกปรก
 const DIRT_SPOTS = [
   [76, 150], [124, 162], [100, 180], [133, 136], [66, 126], [110, 143],
 ]
 
-// กรอบของสัตว์เลี้ยงทุกชนิด: ขนาดตามช่วงวัย, กระโดดตอนถูกดูแล, หายใจ, ลูกโป่ง, เงา, หัวใจ, คราบสกปรก, ฟองสบู่
-// ตัวสัตว์จริง ๆ วาดในไฟล์ของแต่ละชนิด (Dog.jsx, Cat.jsx, ...)
-// dirt: 0–1 ยิ่งมากยิ่งเลอะ / bubbles: ตำแหน่งฟองสบู่ [{ x, y }] ในกรอบ 200×200 / say: ข้อความในลูกโป่งแทนอิโมจิ
+// กรอบสัตว์เลี้ยง: ลูกโป่งคำพูด เงา หัวใจ คราบ ฟองสบู่
 export default function PetAvatar({ species, face = 'normal', level = 1, scale = 1, hopKey = 0, emoji, moodLabel, label, dirt = 0, bubbles = [], say }) {
   const Body = getPetBody(species)
   const spots = Math.ceil(dirt * DIRT_SPOTS.length)
 
   return (
     <div className={`dog-hop relative ${face === 'sleep' ? 'pet-sleeping' : ''}`} key={hopKey} style={{ width: `${scale * 100}%` }}>
-      {/* ลูกโป่งอิโมจิตามอารมณ์ วางเหนือหัวด้านขวา หางชี้ลงมาที่หัวน้อง */}
+      {/* ลูกโป่งคำพูด */}
       {(say || emoji) && (
         <div
           key={say ?? emoji}

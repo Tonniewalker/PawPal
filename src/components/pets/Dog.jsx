@@ -1,4 +1,4 @@
-// น้องหมา: ขนสีทอง หูพับ มีปานรอบตาขวา
+// น้องหมา
 import { Blush, Collar, Drop, Eyes, INK, MuzzleMouth } from './parts'
 
 const C = {
@@ -36,7 +36,7 @@ export default function Dog({ face, level }) {
 
       {/* หัว */}
       <ellipse cx="100" cy="84" rx="48" ry="42" fill={C.fur} />
-      {/* ปานรอบตาขวา (เอกลักษณ์ของน้อง) */}
+      {/* ปานรอบตา */}
       <ellipse cx="123" cy="79" rx="15" ry="13" fill={C.furDark} />
       {/* ปาก-จมูกสีครีม */}
       <ellipse cx="100" cy="104" rx="25" ry="18" fill={C.cream} />

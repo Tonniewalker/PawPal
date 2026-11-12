@@ -1,5 +1,5 @@
-// ===== แปลง error ตอนล็อกอินเป็นข้อความภาษาไทย =====
-// ข้อความ error ภาษาไทย (null = ไม่ต้องแจ้ง เช่น ผู้ใช้ปิดหน้าต่างเอง)
+// ===== ข้อความ error ตอนล็อกอิน =====
+// null = ไม่ต้องแจ้ง
 export function authErrorMessage(err) {
   switch (err?.code) {
     case 'auth/popup-closed-by-user':

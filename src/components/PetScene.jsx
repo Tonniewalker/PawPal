@@ -7,7 +7,7 @@ const STARS = [
   [12, 14], [28, 30], [44, 10], [70, 22], [86, 36], [58, 40], [20, 46],
 ]
 
-// ฉากท้องฟ้า + สนามหญ้า + สัตว์เลี้ยง (ท้องฟ้าเปลี่ยนตามเวลาจริง: กลางวัน/เย็น/กลางคืน)
+// ฉากท้องฟ้า + สนามหญ้า + สัตว์เลี้ยง
 export default function PetScene({ species, face, level, scale, hopKey, emoji, moodLabel, now, children, className = 'h-64' }) {
   const time = getTimeOfDay(now)
 

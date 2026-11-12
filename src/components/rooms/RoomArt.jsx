@@ -1,6 +1,5 @@
-// ===== ฉากห้องทั้ง 4 ห้อง (วาดด้วย SVG กรอบ 390×760) =====
-// แต่ละห้องมี 2 ชั้น: Back = ผนัง พื้น เฟอร์นิเจอร์ด้านหลังสัตว์ / Front = ของที่บังตัวสัตว์ (โต๊ะ ผ้าห่ม)
-// หน้าต่างทุกห้องแสดงท้องฟ้าตามเวลาจริง (กลางวัน / เย็น / กลางคืน)
+// ===== ฉากห้อง (SVG 390×760) =====
+// Back = หลังตัวสัตว์, Front = หน้าตัวสัตว์
 import { useId } from 'react'
 
 const SKY = {
@@ -132,7 +131,7 @@ export function KitchenBack({ time }) {
   )
 }
 
-// โต๊ะหน้าสัตว์ + จาน (อาหารบนจานเป็นปุ่มที่ลากได้ วางทับใน Home.jsx)
+// โต๊ะ + จาน
 export function KitchenFront() {
   return (
     <g>
@@ -195,7 +194,7 @@ export function BathroomBack({ time }) {
 export function BathroomFront() {
   return (
     <g>
-      {/* ขวดสบู่ (ฟองน้ำเป็นปุ่มที่ลากได้ วางใน Home.jsx) */}
+      {/* ขวดสบู่ */}
       <rect x="318" y="610" width="48" height="52" rx="12" fill="#F5A3C0" />
       <rect x="333" y="596" width="18" height="18" rx="5" fill="#E58AAB" />
     </g>

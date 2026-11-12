@@ -1,4 +1,4 @@
-// ===== เชื่อมต่อ Firebase (ใช้ 2 อย่าง: Authentication + Firestore) =====
+// ===== Firebase =====
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore'
@@ -14,11 +14,9 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig)
 
-// Auth จำการล็อกอินไว้ในเครื่องเอง ปิดแอปแล้วเปิดใหม่ยังล็อกอินอยู่
 export const auth = getAuth(app)
 
-// Firestore แบบมี cache ในเครื่อง: ออฟไลน์ก็ยังอ่านข้อมูลล่าสุดได้
-// และสิ่งที่บันทึกตอนออฟไลน์จะถูกส่งขึ้นคลาวด์เองเมื่อกลับมาออนไลน์
+// Firestore พร้อม cache สำหรับออฟไลน์
 export const db = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
 })

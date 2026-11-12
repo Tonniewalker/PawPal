@@ -4,7 +4,7 @@ import { APP_NAME } from '../config'
 import { getTimeOfDay } from '../petLogic'
 import { SPECIES_LIST } from '../species'
 
-// หน้าแรก (เปิดแอปครั้งแรก): เลือกเล่นแบบ Guest หรือเข้าสู่ระบบด้วย Google
+// หน้าแรก: เลือก Guest หรือ Google
 export default function Welcome({ onGuest, onSignIn }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')

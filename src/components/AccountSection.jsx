@@ -1,8 +1,6 @@
 import { useState } from 'react'
 
 // ส่วนบัญชีในหน้าตั้งค่า
-// Guest: เตือนว่าข้อมูลอยู่ในเครื่องเท่านั้น + ปุ่มเข้าสู่ระบบ
-// ล็อกอินแล้ว: ชื่อ อีเมล + ปุ่มออกจากระบบ
 export default function AccountSection({ account }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')

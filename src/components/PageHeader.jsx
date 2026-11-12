@@ -1,12 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 
-// หัวหน้าเพจ (สมุดบันทึก / ตั้งค่า) มีปุ่มกลับไปห้องที่เปิดอยู่ก่อนหน้า
+// หัวหน้าเพจพร้อมปุ่มกลับ
 export default function PageHeader({ title, right }) {
   const navigate = useNavigate()
   const location = useLocation()
 
   function goBack() {
-    // เปิดหน้านี้ตรง ๆ (ไม่มีหน้าก่อนหน้า) → กลับห้องนั่งเล่น
+    // ไม่มีหน้าก่อนหน้า → ห้องนั่งเล่น
     if (location.key === 'default') navigate('/')
     else navigate(-1)
   }

@@ -3,8 +3,7 @@ import PetAvatar from '../components/pets/PetAvatar'
 import { DAY, getLevel } from '../petLogic'
 import { getSpecies } from '../species'
 
-// ล็อกอินตอนที่ในเครื่องมีสัตว์เลี้ยงของ Guest แต่บัญชีก็มีสัตว์อยู่แล้ว
-// (1 บัญชีเลี้ยงได้ 1 ตัว) → ให้เลือกว่าจะเก็บตัวไหน
+// เลือกตัวที่จะเก็บตอนล็อกอิน
 export default function ChoosePet({ account, local, remote, onChoose, onCancel }) {
   const [choice, setChoice] = useState(null) // 'remote' | 'local'
 

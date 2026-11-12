@@ -1,4 +1,4 @@
-// ===== ทะเบียนตัววาดของสัตว์แต่ละชนิด =====
+// ===== ตัววาดของแต่ละชนิด =====
 // key ต้องตรงกับ id ใน src/species.js
 import Bird from './Bird'
 import Cat from './Cat'

@@ -22,9 +22,8 @@ function Gauge({ icon, value, active }) {
   )
 }
 
-// แถบล่างแบบ My Talking Tom: แต่ละปุ่ม = ไปห้องนั้น + หลอดบอกค่าที่ห้องนั้นดูแล
+// แถบล่าง: ปุ่มห้องพร้อมหลอดค่า
 export default function BottomNav({ pet }) {
-  // เรียงตามลำดับห้อง: นั่งเล่น ครัว ห้องน้ำ ห้องนอน
   const rooms = Object.keys(ROOMS).map((room) => {
     const stat = STATS.find((s) => s.room === room)
     return { room, stat, value: pet[stat.key], ...ROOMS[room] }

@@ -1,43 +1,39 @@
-// ===== ตั้งค่าทั้งหมดของแอปอยู่ในไฟล์นี้ แก้ตัวเลขตรงนี้ที่เดียวพอ =====
+// ===== การตั้งค่าแอป =====
 
-// ชื่อแอป (vite.config.js ดึงไปใช้เป็นชื่อตอนติดตั้งบนมือถือด้วย)
+// ชื่อแอป
 export const APP_NAME = 'PawPal'
 export const APP_FULL_NAME = 'PawPal เลี้ยงสัตว์'
 
-// รุ่นของโครงข้อมูลสัตว์เลี้ยง เพิ่มเลขนี้ทุกครั้งที่เปลี่ยนรูปแบบข้อมูล
-// (ใช้ใน normalizePet() เพื่อแปลงข้อมูลรุ่นเก่าให้เป็นรุ่นปัจจุบัน)
-export const DATA_VERSION = 4 // รุ่น 4: เหรียญ + กระเป๋าอาหาร + โบนัสรายวัน (รุ่น 3: ค่า 4 ค่า + การนอน)
+// รุ่นของโครงข้อมูล
+export const DATA_VERSION = 5
 
-// ชนิดสัตว์เริ่มต้น (ข้อมูลรุ่น 1 ไม่มีฟิลด์ species เพราะมีแต่น้องหมา)
+// ชนิดสัตว์เริ่มต้น
 export const DEFAULT_SPECIES = 'dog'
 
-// ชื่อ key ที่ใช้เก็บข้อมูลใน localStorage
+// key ใน localStorage
 export const STORAGE_KEYS = {
   pet: 'pawpal:pet',
   diary: 'pawpal:diary',
-  guest: 'pawpal:guest', // 'yes' = ผู้ใช้เลือกเล่นแบบ Guest แล้ว (ไม่ต้องถามอีก)
-  // key ของข้อมูลรุ่น 1 (ย้ายมาเป็นรุ่นใหม่อัตโนมัติตอนเปิดแอป)
+  guest: 'pawpal:guest', // เลือกเล่นแบบ Guest แล้ว
+  // key ข้อมูลรุ่นแรก
   legacyDog: 'dog',
   legacyDiary: 'diary',
 }
 
-// สมุดบันทึกเก็บย้อนหลังได้สูงสุดกี่รายการ
+// จำนวนบันทึกสูงสุด
 export const DIARY_LIMIT = 300
 
-// ค่าเริ่มต้นตอนรับเลี้ยง (เต็ม 100)
+// ค่าสถานะเริ่มต้น (เต็ม 100)
 export const START_VALUE = 80
 
-// ค่าลดลงกี่หน่วยต่อ 1 ชั่วโมง แยกตามชนิดสัตว์ → ดูที่ src/species.js (decay)
-// เช่น อิ่มลด 10 ต่อชั่วโมง → จาก 80 จะเหลือต่ำกว่า 30 หลังผ่านไปประมาณ 5 ชั่วโมง
-
-export const LOW = 30 // ต่ำกว่านี้ = หิว / เหงา / ตัวเลอะ / เหนื่อย
-export const FULL = 90 // ตั้งแต่นี้ขึ้นไป ดูแลค่านั้นไม่ได้ (กันกดรัวเก็บ EXP)
+export const LOW = 30 // ค่าต่ำ
+export const FULL = 90 // ค่าเต็ม ดูแลเพิ่มไม่ได้
 export const EXP_PER_LEVEL = 100
 
-// หายไปนานเกินเท่านี้ ตอนเปิดแอปจะขึ้นข้อความต้อนรับกลับ
+// หายไปนานเท่านี้ขึ้นไปจะแสดงการ์ดต้อนรับกลับ
 export const AWAY_NOTICE_MS = 30 * 60 * 1000 // 30 นาที
 
-// ค่าสถานะ 4 อย่างของสัตว์เลี้ยง แต่ละค่าดูแลได้ในห้องของตัวเอง
+// ค่าสถานะและห้องที่ใช้ดูแล
 export const STATS = [
   { key: 'food', label: 'ความอิ่ม', short: 'อิ่ม', icon: '🍖', room: 'kitchen' },
   { key: 'fun', label: 'ความสุข', short: 'สุข', icon: '😊', room: 'living' },
@@ -47,9 +43,7 @@ export const STATS = [
 
 // ===== การดูแลในแต่ละห้อง =====
 
-// ห้องครัว: ลากอาหารไปที่ปากน้อง (food = ความอิ่มที่เพิ่ม, fun = ความสุขที่เพิ่ม, price = ราคาในร้าน)
-// price: 0 = ฟรีไม่จำกัด (กันไม่ให้เลี้ยงต่อไม่ได้ตอนเหรียญหมด)
-// เรียงตามลำดับที่วางบนโต๊ะครัวและในร้านค้า
+// อาหาร (price 0 = ฟรีไม่จำกัด)
 export const FOODS = {
   kibble: { label: 'ข้าวเม็ด', icon: '🥣', food: 6, exp: 2, price: 0 },
   meat: { label: 'เนื้อ', icon: '🍖', food: 15, exp: 10, price: 15 },
@@ -60,19 +54,30 @@ export const FOODS = {
 
 // ===== เหรียญ =====
 export const START_COINS = 50 // เหรียญตอนรับเลี้ยง
-export const STARTER_FOODS = { meat: 2, milk: 2, apple: 2 } // อาหารที่ติดตัวมาตอนรับเลี้ยง
+export const STARTER_FOODS = { meat: 2, milk: 2, apple: 2 } // อาหารเริ่มต้น
 export const COINS = {
-  perExp: 0.5, // ดูแลได้ EXP เท่าไหร่ ได้เหรียญครึ่งหนึ่ง (ปัดขึ้น)
-  levelUp: 30, // เลเวลอัปได้เพิ่ม
-  daily: 20, // โบนัสเปิดแอปวันละครั้ง
+  perExp: 0.5, // เหรียญต่อ EXP
+  levelUp: 30, // เลเวลอัป
+  daily: 20, // โบนัสรายวัน
 }
 
-// ห้องนั่งเล่น: ลูบตัวน้อง ทุก ๆ ระยะที่ลูบ (px) จะได้ความสุข + EXP
+// ===== มินิเกมรับขนม =====
+export const GAME = {
+  durationSec: 30,
+  points: { treat: 1, coin: 3, bad: -2 }, // ขนม / เหรียญ / ขยะ
+  coinsPerPoint: 1, // เหรียญต่อคะแนน
+  dailyCoinCap: 100, // เหรียญจากเกมสูงสุดต่อวัน
+  fun: 15, // ความสุขที่เพิ่ม
+  energyCost: 10, // พลังงานที่ใช้
+  minEnergy: 20, // พลังงานขั้นต่ำที่เล่นได้
+  exp: 10,
+}
+
+// ลูบตัว: ทุก distance px ได้ fun และ exp
 export const PAT = { distance: 140, fun: 5, exp: 4 }
 
-// ห้องน้ำ: ลากฟองน้ำถูตัวให้เกิดฟอง แล้วกดฝักบัว
-// ฟองเพิ่มทุก ๆ bubbleDistance px, ฟองละ cleanPerBubble, ได้สูงสุด maxBubbles ฟองต่อการอาบ 1 ครั้ง
+// อาบน้ำ: เกิดฟองทุก bubbleDistance px
 export const WASH = { bubbleDistance: 45, cleanPerBubble: 4, maxBubbles: 16, exp: 10 }
 
-// ห้องนอน: ปิดไฟให้น้องนอน พลังงานฟื้นเฉพาะตอนหลับ (ชั่วโมงละเท่านี้)
+// นอน: พลังงานที่ฟื้นต่อชั่วโมง
 export const SLEEP = { recoverPerHour: 25, exp: 8 }

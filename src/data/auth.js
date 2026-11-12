@@ -1,16 +1,15 @@
-// ===== ล็อกอิน / ออกจากระบบด้วยบัญชี Google =====
+// ===== ล็อกอินด้วย Google =====
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 import { auth } from './firebase'
 
-// แปลงข้อมูลผู้ใช้ของ Firebase ให้เหลือเท่าที่แอปใช้
+// ข้อมูลผู้ใช้ที่แอปใช้
 function toAccount(user) {
   return user
     ? { uid: user.uid, name: user.displayName ?? '', email: user.email ?? '', photo: user.photoURL ?? '' }
     : null
 }
 
-// เรียก callback ทุกครั้งที่สถานะล็อกอินเปลี่ยน (ครั้งแรกจะเรียกทันทีที่ Firebase เช็กเสร็จ)
-// คืนฟังก์ชันสำหรับเลิกฟัง
+// ติดตามสถานะล็อกอิน (คืนฟังก์ชันเลิกติดตาม)
 export function watchAccount(callback) {
   return onAuthStateChanged(auth, (user) => callback(toAccount(user)))
 }

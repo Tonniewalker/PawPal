@@ -5,15 +5,16 @@ import { DAY } from '../petLogic'
 import { getSpecies } from '../species'
 
 const ICONS = {
-  adopt: '🐾', // ใช้อิโมจิของชนิดสัตว์แทน (ดูด้านล่าง)
+  adopt: '🐾',
   feed: '🍖',
-  water: '💧', // บันทึกเก่าก่อนรวมน้ำเข้ากับอาหาร
+  water: '💧',
   pat: '🤚',
   wash: '🛁',
   sleep: '🌙',
   wake: '☀️',
   levelup: '⭐',
   bonus: '🎁',
+  game: '🎮',
   rename: '✏️',
   return: '👋',
 }
@@ -47,7 +48,7 @@ export default function Diary({ pet, diary, now }) {
   // นับจำนวนครั้งที่ดูแลแต่ละแบบ
   const counts = COUNTS.map((c) => ({ ...c, count: diary.filter((entry) => c.types.includes(entry.type)).length }))
 
-  // จัดกลุ่มบันทึกตามวัน (diary เรียงใหม่ → เก่าอยู่แล้ว)
+  // จัดกลุ่มตามวัน
   const groups = []
   for (const entry of diary) {
     const label = dayLabel(entry.at, now)

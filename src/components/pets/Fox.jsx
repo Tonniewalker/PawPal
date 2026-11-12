@@ -1,4 +1,4 @@
-// น้องจิ้งจอก: ขนส้ม แก้มขาว หูใหญ่ปลายดำ หางฟูปลายขาว ใส่ปลอกคอสีฟ้า
+// น้องจิ้งจอก
 import { Blush, Collar, Drop, Eyes, INK, MuzzleMouth } from './parts'
 
 const C = {
@@ -45,7 +45,7 @@ export default function Fox({ face, level }) {
 
       <Collar level={level} width={64} color={C.collar} />
 
-      {/* หูใหญ่ (วาดก่อนหัว) */}
+      {/* หู */}
       <g transform={`rotate(${-earTilt} 75 62)`}>
         <path d="M56 76 L58 22 L94 50 Z" fill={C.fur} stroke={C.fur} strokeWidth="6" strokeLinejoin="round" />
         <path d="M63 66 L63 34 L85 52 Z" fill={C.dark} />

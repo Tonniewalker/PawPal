@@ -1,4 +1,4 @@
-// น้องแมว: ขนสีเทาฟ้า หูตั้ง มีลายบนหัว มีหนวด
+// น้องแมว
 import { Blush, Collar, Drop, Eyes, INK, TONGUE } from './parts'
 
 const C = {
@@ -79,7 +79,7 @@ export default function Cat({ face, level }) {
 
       <Collar level={level} width={62} />
 
-      {/* หูตั้ง (วาดก่อนหัว ให้หัวทับโคนหู) */}
+      {/* หู */}
       <g transform={`rotate(${-earTilt} 74 62)`}>
         <path d="M58 74 L62 30 L92 52 Z" fill={C.fur} strokeLinejoin="round" stroke={C.fur} strokeWidth="6" />
         <path d="M65 64 L67 41 L84 54 Z" fill={C.earInner} />

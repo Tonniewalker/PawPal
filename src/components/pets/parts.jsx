@@ -1,6 +1,6 @@
-// ===== ชิ้นส่วนที่สัตว์ทุกชนิดใช้ร่วมกัน =====
-// สัตว์ทุกตัววาดในกรอบ 200×200 หัวอยู่ราว ๆ (100, 84) พื้นอยู่ที่ y = 193
-// face: 'happy' | 'normal' | 'hungry' | 'thirsty' (ใช้เป็นหน้าเหนื่อยหอบ) | 'sad' | 'sleep'
+// ===== ชิ้นส่วนร่วมของสัตว์ =====
+// กรอบ 200×200
+// face: happy | normal | hungry | thirsty | sad | sleep
 
 export const INK = '#3A2A22'
 export const TONGUE = '#F27A8A'
@@ -9,7 +9,7 @@ export const DROP = '#8FD0F5'
 const COLLAR = '#E5484D'
 const TAG = '#FFC93C'
 
-// ตา: ยิ้มตาปิด / หลับ / เศร้ามีคิ้วตกกับน้ำตา / ตากลม (หิวตาโต เหนื่อยตาเล็ก)
+// ตา
 export function Eyes({ face, lx = 80, rx = 120, y = 80, size = 1 }) {
   if (face === 'sleep') {
     const w = 8 * size
@@ -62,12 +62,12 @@ export function Eyes({ face, lx = 80, rx = 120, y = 80, size = 1 }) {
   )
 }
 
-// หยดน้ำ (น้ำตา / น้ำลาย / เหงื่อ) จุดบนสุดอยู่ที่ (x, y)
+// หยดน้ำ
 export function Drop({ x, y, scale = 1 }) {
   return <path d={`M${x} ${y} q${-4 * scale} ${7 * scale} 0 ${10 * scale} q${4 * scale} ${-3 * scale} 0 ${-10 * scale}z`} fill={DROP} />
 }
 
-// แก้มแดง แสดงตอนอารมณ์ดี
+// แก้มแดง
 export function Blush({ face, lx = 68, rx = 132, y = 99, r = 6 }) {
   if (face !== 'happy' && face !== 'normal') return null
   return (
@@ -78,7 +78,7 @@ export function Blush({ face, lx = 68, rx = 132, y = 99, r = 6 }) {
   )
 }
 
-// ปลอกคอ + ป้ายบอกเลเวล
+// ปลอกคอ + ป้ายเลเวล
 export function Collar({ level, y = 117, width = 68, color = COLLAR }) {
   return (
     <g>
@@ -99,7 +99,7 @@ export function LevelTag({ level, x = 100, y = 134 }) {
   )
 }
 
-// ปากมาตรฐานของสัตว์สี่ขา (หมา จิ้งจอก) จุดกึ่งกลางใต้จมูกที่ (100, y)
+// ปากแบบหมา/จิ้งจอก
 export function MuzzleMouth({ face, y = 104 }) {
   const line = { fill: 'none', stroke: INK, strokeWidth: 3, strokeLinecap: 'round' }
   switch (face) {
@@ -137,7 +137,7 @@ export function MuzzleMouth({ face, y = 104 }) {
   }
 }
 
-// หัวใจลอยตอนมีความสุข
+// หัวใจลอย
 export function Hearts() {
   return (
     <>

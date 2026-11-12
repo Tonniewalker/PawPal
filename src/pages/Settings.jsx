@@ -3,7 +3,7 @@ import AccountSection from '../components/AccountSection'
 import PageHeader from '../components/PageHeader'
 import { getSpecies } from '../species'
 
-// ปุ่มจำลองว่าผู้ใช้ปิดแอปไปนานเท่าไหร่ (ใช้ตอนพรีเซนต์)
+// ตัวเลือกจำลองเวลา
 const SKIPS = [
   { hours: 1, label: '1 ชั่วโมง' },
   { hours: 6, label: '6 ชั่วโมง' },

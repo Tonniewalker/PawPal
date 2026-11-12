@@ -9,7 +9,7 @@ import { FOODS, PAT, STATS, WASH } from '../config'
 import { foodCount, formatDuration, getLevel, getMood, getStage, getTimeOfDay } from '../petLogic'
 import { getSpecies } from '../species'
 
-// แปลงตำแหน่งในกรอบฉาก 390×760 เป็น % (ใช้วางปุ่มทับภาพ)
+// แปลงพิกัดฉาก 390×760 เป็น %
 const pctX = (x) => `${(x / 390) * 100}%`
 const pctBottom = (y) => `${((760 - y) / 760) * 100}%`
 const TRAY_SIZE = 3
@@ -28,8 +28,7 @@ function Sponge() {
   )
 }
 
-// ===== หน้าห้อง (นั่งเล่น / ครัว / ห้องน้ำ / ห้องนอน) แบบ My Talking Tom =====
-// สัตว์เต็มจอ + แถบบน (เลเวล ชื่อ เหรียญ เมนู) + แถบล่าง (ปุ่มห้อง = หลอดค่า)
+// ===== หน้าห้อง =====
 export default function Home({ room, pet, now, care, welcome, onDismissWelcome, notice, onDismissNotice }) {
   const R = ROOMS[room]
   const mood = getMood(pet)
@@ -40,7 +39,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
   const petBoxRef = useRef(null)
   const petSvg = () => petBoxRef.current?.querySelector('svg')
 
-  // ===== ปฏิกิริยาของน้อง: กระโดด, +EXP ลอยขึ้น, เลเวลอัป, พูด =====
+  // ===== ปฏิกิริยาของน้อง =====
   const [hopKey, setHopKey] = useState(0)
   const [pops, setPops] = useState([])
   const [levelUp, setLevelUp] = useState(null)
@@ -69,7 +68,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
     }
   }
 
-  // ===== ห้องนั่งเล่น: ลูบตัวน้อง =====
+  // ===== ห้องนั่งเล่น =====
   const rubRef = useRef(null)
   const [hand, setHand] = useState(null)
 
@@ -108,7 +107,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
       else setHopKey((k) => k + 1)
     }
   }
-  // ใช้คีย์บอร์ดได้: กด Enter ที่ตัวน้อง = ลูบ 1 ครั้ง
+  // กด Enter = ลูบ 1 ครั้ง
   function rubKey(e) {
     if (room !== 'living' || (e.key !== 'Enter' && e.key !== ' ')) return
     e.preventDefault()
@@ -117,7 +116,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
     if (result.ok) care.logPat(1)
   }
 
-  // ===== ห้องครัว: ลากอาหารไปที่ปากน้อง (โต๊ะวางได้ทีละ 3 จาน เลื่อนด้วยลูกศร) =====
+  // ===== ห้องครัว =====
   const foodKeys = Object.keys(FOODS)
   const [trayStart, setTrayStart] = useState(0)
   const trayKeys = foodKeys.slice(trayStart, trayStart + TRAY_SIZE)
@@ -130,7 +129,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
     },
   })
 
-  // ===== ห้องน้ำ: ลากฟองน้ำถูตัวให้เกิดฟอง แล้วกดฝักบัว =====
+  // ===== ห้องน้ำ =====
   const [bubbles, setBubbles] = useState([])
   const [showering, setShowering] = useState(false)
   const scrubRef = useRef(null)
@@ -184,7 +183,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
     }, 1200)
   }
 
-  // ===== ห้องนอน: ปิดไฟนอน / เปิดไฟตื่น =====
+  // ===== ห้องนอน =====
   const sleepingHere = room === 'bedroom' && pet.asleep
 
   const species = getSpecies(pet.species)
@@ -196,7 +195,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
     <div className="relative mx-auto h-dvh max-w-[440px] select-none overflow-hidden" style={{ background: R.wall }}>
       <h1 className="sr-only">{R.name}</h1>
 
-      {/* ===== ฉาก (กรอบ 390×760 ยึดขอบล่าง) ===== */}
+      {/* ===== ฉาก ===== */}
       <div className="absolute inset-x-0 bottom-0" style={{ aspectRatio: '390 / 760' }}>
         <svg viewBox="0 0 390 760" className="absolute inset-0 h-full w-full" aria-hidden="true">
           <R.Back time={time} />
@@ -260,6 +259,12 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
         </svg>
 
         {/* ===== ของในแต่ละห้อง ===== */}
+        {room === 'living' && (
+          <Link to="/play" aria-label="เล่นมินิเกมรับขนม" className={`absolute bottom-[15%] left-4 z-10 bg-[#7CCB5E] ${roundBtn}`}>
+            🎮
+          </Link>
+        )}
+
         {room === 'kitchen' && (
           <>
             {trayKeys.map((key, i) => {
@@ -300,7 +305,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
                 </button>
               )
             })}
-            {/* ลูกศรเลื่อนดูอาหารบนโต๊ะ (โชว์ทีละ 3 จาน) */}
+            {/* ลูกศรเลื่อนอาหาร */}
             <button
               type="button"
               onClick={() => setTrayStart((n) => Math.max(0, n - 1))}

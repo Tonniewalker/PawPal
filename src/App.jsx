@@ -4,7 +4,7 @@ import ChoosePet from './pages/ChoosePet'
 import Welcome from './pages/Welcome'
 import { useAccount } from './useAccount'
 
-// ===== ด่านแรกของแอป: เช็กบัญชีก่อน แล้วค่อยเข้าเกม =====
+// ===== เช็กบัญชี แล้วเข้าเกม =====
 export default function App() {
   const acc = useAccount()
 
@@ -28,7 +28,7 @@ export default function App() {
         />
       )
     default: {
-      // 'guest' หรือ 'user' → เข้าเกม (key ตามบัญชี: เปลี่ยนบัญชีแล้วเกมโหลดใหม่หมด)
+      // guest / user → เข้าเกม
       const account =
         acc.status === 'user'
           ? { mode: 'user', ...acc.account, signOut: acc.signOut }

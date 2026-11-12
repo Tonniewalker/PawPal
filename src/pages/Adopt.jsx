@@ -4,14 +4,14 @@ import PetAvatar from '../components/pets/PetAvatar'
 import { DEFAULT_SPECIES, STATS } from '../config'
 import { SPECIES, SPECIES_LIST } from '../species'
 
-// แปลงอัตราค่าลดต่อชั่วโมงเป็นคำ ให้ผู้เล่นเทียบนิสัยแต่ละชนิดได้ง่าย ๆ
+// อัตราค่าลด → คำ
 function speedLabel(rate) {
   if (rate >= 10) return { text: 'ลดเร็ว', className: 'bg-berry/10 text-berry' }
   if (rate <= 5) return { text: 'ลดช้า', className: 'bg-leaf/15 text-[#3E7A2A]' }
   return { text: 'ปกติ', className: 'bg-line text-ink/70' }
 }
 
-// หน้ารับเลี้ยง: แสดงเองอัตโนมัติเมื่อยังไม่มีข้อมูลสัตว์เลี้ยง
+// หน้ารับเลี้ยง
 // เลือกชนิด → ตั้งชื่อ → รับเลี้ยง
 export default function Adopt({ now, onAdopt }) {
   const [speciesId, setSpeciesId] = useState(DEFAULT_SPECIES)

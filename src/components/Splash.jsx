@@ -1,4 +1,4 @@
-// หน้าจอระหว่างโหลดข้อมูล (และตอนโหลดไม่สำเร็จ ให้กดลองใหม่ได้)
+// หน้าจอโหลด
 export default function Splash({ message = 'กำลังโหลด…', onRetry }) {
   return (
     <div className="mx-auto flex min-h-screen max-w-[440px] flex-col items-center justify-center gap-4 bg-paper px-5 text-center">

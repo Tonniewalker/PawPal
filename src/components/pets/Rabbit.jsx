@@ -1,4 +1,4 @@
-// น้องกระต่าย: ขนขาวครีม หูยาว หางปุย มีฟันหน้า 2 ซี่
+// น้องกระต่าย
 import { Blush, Collar, Drop, Eyes, INK, TONGUE } from './parts'
 
 const C = {
@@ -66,7 +66,7 @@ function Mouth({ face }) {
 
 export default function Rabbit({ face, level }) {
   const sad = face === 'sad'
-  // หูตั้งตรง / ตอนเศร้าหูตกลงข้าง ๆ
+  // มุมหูตามอารมณ์
   const leftEar = sad ? 'rotate(-118 84 62)' : 'rotate(-8 84 60)'
   const rightEar = sad ? 'rotate(118 116 62)' : 'rotate(8 116 60)'
 
@@ -87,7 +87,7 @@ export default function Rabbit({ face, level }) {
 
       <Collar level={level} width={60} />
 
-      {/* หูยาว (วาดก่อนหัว) */}
+      {/* หู */}
       <g transform={leftEar}>
         <ellipse cx="84" cy="30" rx="13" ry="32" fill={C.fur} stroke={C.shade} strokeWidth="1.5" />
         <ellipse cx="84" cy="32" rx="6" ry="24" fill={C.earInner} />

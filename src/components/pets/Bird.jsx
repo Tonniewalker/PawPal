@@ -1,4 +1,4 @@
-// น้องนก: ตัวกลมสีเหลือง มีหงอน ปากสีส้ม ผูกโบว์แทนปลอกคอ
+// น้องนก
 import { Blush, Drop, Eyes, INK, LevelTag, TONGUE } from './parts'
 
 const C = {
@@ -10,7 +10,7 @@ const C = {
   bow: '#E5484D',
 }
 
-// ปาก: ปิด / อ้า (ดีใจ, หิว) / แลบลิ้น (หิวน้ำ)
+// ปาก
 function Beak({ face }) {
   const upper = <path d="M88 100 Q100 88 112 100 Z" fill={C.beak} />
   if (face === 'happy' || face === 'hungry') {
@@ -45,7 +45,7 @@ function Beak({ face }) {
 export default function Bird({ face, level }) {
   const happy = face === 'happy'
   const sad = face === 'sad'
-  // ปีก: ดีใจกางปีก / เศร้าหุบปีกแนบตัว
+  // มุมปีกตามอารมณ์
   const wingAngle = happy ? 50 : sad ? 5 : 20
 
   return (
@@ -60,7 +60,7 @@ export default function Bird({ face, level }) {
         strokeWidth="4"
       />
 
-      {/* ปีก (วาดก่อนตัว) */}
+      {/* ปีก */}
       <ellipse cx="50" cy="130" rx="14" ry="30" fill={C.wing} transform={`rotate(${wingAngle} 56 108)`} />
       <ellipse cx="150" cy="130" rx="14" ry="30" fill={C.wing} transform={`rotate(${-wingAngle} 144 108)`} />
 

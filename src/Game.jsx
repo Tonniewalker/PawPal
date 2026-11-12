@@ -6,22 +6,22 @@ import Adopt from './pages/Adopt'
 import Home from './pages/Home'
 import Diary from './pages/Diary'
 import Settings from './pages/Settings'
+import Play from './pages/Play'
 import Shop from './pages/Shop'
-import { AWAY_NOTICE_MS, COINS, DIARY_LIMIT, FOODS, FULL, PAT, SLEEP, WASH } from './config'
+import { AWAY_NOTICE_MS, COINS, DIARY_LIMIT, FOODS, FULL, GAME, PAT, SLEEP, WASH } from './config'
 import { applyTime, createPet, dayKey, foodCount, formatDuration, getLevel, HOUR, makeDiaryEntry, MINUTE } from './petLogic'
 
-// บันทึกข้อมูลแบบไม่ต้องรอ (UI อัปเดตไปก่อนแล้ว) ถ้าพลาดให้แจ้งใน console
+// บันทึกโดยไม่รอผล
 function persist(promise) {
   promise.catch((err) => console.error('บันทึกข้อมูลไม่สำเร็จ', err))
 }
 
-// รอสักครู่ค่อยบันทึก: ลูบตัว/ถูสบู่รัว ๆ จะได้บันทึกครั้งเดียว ไม่ยิงขึ้นคลาวด์ทุกครั้ง
+// หน่วงเวลาบันทึก
 const SAVE_DELAY_MS = 800
 
 const ASLEEP = { ok: false, say: 'หลับอยู่ 💤 ไปปลุกที่ห้องนอนนะ' }
 
-// ตัวเกม: ใช้ที่เก็บข้อมูลตามบัญชีที่ส่งเข้ามา (Guest = localStorage / ล็อกอิน = Firestore)
-// App.jsx ใส่ key ตามบัญชี เวลาเปลี่ยนบัญชีเกมจะเริ่มโหลดใหม่ทั้งหมด
+// ===== ตัวเกม =====
 export default function Game({ store, account, notice: initialNotice }) {
   const { loadGame, savePet, addDiaryEntries, shiftDiaryTimes, resetGame } = store
   const navigate = useNavigate()
@@ -31,26 +31,23 @@ export default function Game({ store, account, notice: initialNotice }) {
   const [diary, setDiary] = useState([])
   const [welcome, setWelcome] = useState(null)
   const [now, setNow] = useState(() => Date.now())
-  const [notice, setNotice] = useState(initialNotice) // ข้อความแจ้งครั้งเดียว เช่น ย้ายข้อมูลขึ้นบัญชีแล้ว
+  const [notice, setNotice] = useState(initialNotice) // ข้อความแจ้งเตือน
 
-  // ค่า pet ล่าสุด (อัปเดตทันทีตอนดูแล ไม่ต้องรอ render ใหม่ ใช้กับ event ที่มาถี่ ๆ เช่น ลูบตัว)
+  // ค่า pet ล่าสุด
   const petRef = useRef(pet)
   useEffect(() => {
     petRef.current = pet
   }, [pet])
-  // true = กำลังจะโหลดหน้าใหม่ ห้ามบันทึกอัตโนมัติ (ไม่งั้นจะเขียนทับข้อมูลที่เพิ่งแก้)
+  // กำลังโหลดหน้าใหม่ ห้ามบันทึกอัตโนมัติ
   const reloadingRef = useRef(false)
   const saveTimerRef = useRef(null)
-  // navigate เปลี่ยนตัวทุกครั้งที่เปลี่ยนหน้า → เก็บไว้ใน ref ให้โค้ดตอนเปิดแอปใช้ได้โดยไม่ต้องรันซ้ำ
+  // navigate ล่าสุด
   const navigateRef = useRef(navigate)
   useEffect(() => {
     navigateRef.current = navigate
   }, [navigate])
 
-  // ===== ทำงานครั้งเดียวตอนเปิดแอป =====
-  // 1) Load ข้อมูลสัตว์เลี้ยง
-  // 2) เอาเวลาตอนนี้ลบกับ lastUpdated → รู้ว่าผู้ใช้หายไปนานแค่ไหน
-  // 3) เปลี่ยนค่าตามเวลาที่หายไป (หลับอยู่ = พลังงานฟื้น) แล้วบันทึกกลับ
+  // ===== โหลดข้อมูลตอนเปิดแอป =====
   useEffect(() => {
     let cancelled = false
 
@@ -66,7 +63,7 @@ export default function Game({ store, account, notice: initialNotice }) {
             entries.push(makeDiaryEntry('return', `กลับมาหลังหายไป ${formatDuration(awayMs)}`, t))
             setWelcome({ awayMs, before: saved, after: current })
           }
-          // โบนัสรายวัน: เปิดแอปวันใหม่ ได้เหรียญเพิ่ม (วันละครั้ง)
+          // โบนัสรายวัน
           if (current.lastBonusDay !== dayKey(t)) {
             current = { ...current, coins: current.coins + COINS.daily, lastBonusDay: dayKey(t) }
             entries.unshift(makeDiaryEntry('bonus', `โบนัสรายวัน +${COINS.daily} เหรียญ`, t + 1))
@@ -96,10 +93,7 @@ export default function Game({ store, account, notice: initialNotice }) {
     }
   }, [loadGame, savePet, addDiaryEntries])
 
-  // ===== ระหว่างเปิดแอปอยู่: ทุก 1 นาที ค่าจะเปลี่ยนตามเวลาจริง =====
-  // (ไม่ต้องบันทึกทุกนาที เพราะคำนวณย้อนจาก lastUpdated ได้เสมอ)
-  // ตอนสลับออกจากแอป → บันทึกครั้งหนึ่ง (เวลาที่ "หายไป" จะได้นับจากตอนออกจริง ๆ)
-  // ตอนสลับกลับมา → อัปเดตทันที เพราะมือถือมักหยุด timer ตอนแอปอยู่เบื้องหลัง
+  // ===== อัปเดตค่าตามเวลา =====
   useEffect(() => {
     function tick() {
       const t = Date.now()
@@ -120,7 +114,7 @@ export default function Game({ store, account, notice: initialNotice }) {
     return () => {
       clearInterval(timer)
       document.removeEventListener('visibilitychange', onVisibilityChange)
-      // ออกจากเกม (เช่น เปลี่ยนบัญชี) → บันทึกที่ค้างอยู่ทันที
+      // บันทึกที่ค้างอยู่ก่อนออก
       if (saveTimerRef.current) {
         clearTimeout(saveTimerRef.current)
         saveTimerRef.current = null
@@ -146,32 +140,31 @@ export default function Game({ store, account, notice: initialNotice }) {
 
   function adopt({ name, species }) {
     const t = Date.now()
-    // วันที่รับเลี้ยงนับว่ารับโบนัสรายวันไปแล้ว (ได้เหรียญเริ่มต้นแทน)
+    // วันรับเลี้ยงไม่ได้โบนัสรายวัน
     const next = { ...createPet({ name, species }, t), lastBonusDay: dayKey(t) }
     const entry = makeDiaryEntry('adopt', `รับ ${name} มาเลี้ยง`, t)
     petRef.current = next
     setPet(next)
     setNow(t)
     setDiary([entry])
-    // ล้างข้อมูลเก่าที่อาจค้างอยู่ก่อน แล้วค่อยบันทึกตัวใหม่
+    // ล้างข้อมูลเก่าก่อนบันทึก
     persist(resetGame().then(() => Promise.all([savePet(next), addDiaryEntries([entry])])))
     navigate('/')
   }
 
   // ===== การดูแล =====
-  // ทุกการดูแลคืนผลแบบเดียวกัน: { ok, exp, coins, levelUp } หรือ { ok: false, say: 'ข้อความที่น้องพูด' }
-  // ได้เหรียญ = ครึ่งหนึ่งของ EXP (ปัดขึ้น) + โบนัสเลเวลอัป
+  // คืนค่า { ok, exp, coins, levelUp } หรือ { ok: false, say }
   function current() {
     return applyTime(petRef.current, Date.now())
   }
 
-  function applyCare(base, { add = {}, set = {}, exp = 0, entries = [] }) {
+  function applyCare(base, { add = {}, set = {}, exp = 0, bonusCoins = 0, entries = [] }) {
     const before = getLevel(base.exp).level
     const after = getLevel(base.exp + exp).level
-    const coins = Math.ceil(exp * COINS.perExp) + (after - before) * COINS.levelUp
+    const coins = Math.ceil(exp * COINS.perExp) + (after - before) * COINS.levelUp + bonusCoins
 
     const next = { ...base, ...set, exp: base.exp + exp, coins: base.coins + coins }
-    for (const [key, amount] of Object.entries(add)) next[key] = Math.min(100, base[key] + amount)
+    for (const [key, amount] of Object.entries(add)) next[key] = Math.min(100, Math.max(0, base[key] + amount))
     updatePet(next)
 
     const log = entries.map(([type, text]) => makeDiaryEntry(type, text))
@@ -182,7 +175,7 @@ export default function Game({ store, account, notice: initialNotice }) {
   }
 
   const care = {
-    // ห้องครัว: กินอาหาร (ใช้ของในกระเป๋า 1 ชิ้น ยกเว้นข้าวเม็ดที่ฟรี)
+    // ห้องครัว: กินอาหาร
     feed(foodKey) {
       const p = current()
       if (p.asleep) return ASLEEP
@@ -195,7 +188,30 @@ export default function Game({ store, account, notice: initialNotice }) {
       if (food.price > 0) set.inventory = { ...p.inventory, [foodKey]: p.inventory[foodKey] - 1 }
       return applyCare(p, { add, set, exp: food.exp, entries: [['feed', `กิน${food.label}`]] })
     },
-    // ร้านค้า: ซื้ออาหาร 1 ชิ้น
+    // มินิเกม: เช็กก่อนเริ่มเล่น
+    canPlay() {
+      const p = current()
+      if (p.asleep) return { ok: false, say: 'หลับอยู่ 💤 ปลุกที่ห้องนอนก่อนนะ' }
+      if (p.energy < GAME.minEnergy) return { ok: false, say: 'เหนื่อยเกินไปแล้ว ไปนอนก่อนนะ 😴' }
+      return { ok: true }
+    },
+    // มินิเกม: รับรางวัล
+    playGame(score) {
+      const p = current()
+      const today = dayKey(Date.now())
+      const earnedToday = p.gameDay === today ? p.gameCoinsToday : 0
+      const gameCoins = Math.max(0, Math.min(score * GAME.coinsPerPoint, GAME.dailyCoinCap - earnedToday))
+      const best = score > p.bestScore
+      const result = applyCare(p, {
+        add: { fun: GAME.fun, energy: -GAME.energyCost },
+        set: { bestScore: Math.max(p.bestScore, score), gameDay: today, gameCoinsToday: earnedToday + gameCoins },
+        exp: GAME.exp,
+        bonusCoins: gameCoins,
+        entries: [['game', `เล่นเกมรับขนม ได้ ${score} คะแนน (+${gameCoins} เหรียญ)`]],
+      })
+      return { ...result, gameCoins, newBest: best, capReached: earnedToday + gameCoins >= GAME.dailyCoinCap }
+    },
+    // ร้านค้า: ซื้ออาหาร
     buy(foodKey) {
       const p = current()
       const { price } = FOODS[foodKey]
@@ -203,14 +219,14 @@ export default function Game({ store, account, notice: initialNotice }) {
       updatePet({ ...p, coins: p.coins - price, inventory: { ...p.inventory, [foodKey]: (p.inventory[foodKey] ?? 0) + 1 } })
       return { ok: true }
     },
-    // ห้องนั่งเล่น: ลูบตัว (เรียกทุกครั้งที่ลูบได้ระยะครบ PAT.distance)
+    // ห้องนั่งเล่น: ลูบตัว
     pat() {
       const p = current()
       if (p.asleep) return ASLEEP
       if (p.fun >= FULL) return { ok: false, say: 'พอแล้ว ขอบคุณนะ 💕' }
       return applyCare(p, { add: { fun: PAT.fun }, exp: PAT.exp })
     },
-    // จบการลูบ 1 รอบ → บันทึกลงสมุดครั้งเดียว
+    // บันทึกการลูบลงสมุด
     logPat(times) {
       addDiary(makeDiaryEntry('pat', `ลูบตัว ${times} ครั้ง`))
     },
@@ -221,7 +237,7 @@ export default function Game({ store, account, notice: initialNotice }) {
       if (p.clean >= FULL) return { ok: false, say: 'สะอาดอยู่แล้ว ✨' }
       return { ok: true }
     },
-    // ห้องน้ำ: ล้างฟองด้วยฝักบัว ยิ่งฟองเยอะยิ่งสะอาด
+    // ห้องน้ำ: อาบน้ำ
     wash(bubbles) {
       const p = current()
       const gain = bubbles * WASH.cleanPerBubble
@@ -246,9 +262,7 @@ export default function Game({ store, account, notice: initialNotice }) {
     addDiary(makeDiaryEntry('rename', `เปลี่ยนชื่อเป็น ${name}`))
   }
 
-  // โหมดเดโม: ย้อน lastUpdated ในที่เก็บข้อมูล แล้วโหลดแอปใหม่
-  // ผลเหมือนผู้ใช้ปิดแอปไปจริง ๆ ตามจำนวนชั่วโมงที่เลือก
-  // (เลื่อนเวลาในสมุดบันทึกย้อนไปด้วย ให้ทุกอย่างตรงกัน)
+  // โหมดเดโม: จำลองว่าปิดแอปไป hours ชั่วโมง
   async function simulateAway(hours) {
     const ms = hours * HOUR
     const p = current()
@@ -312,6 +326,7 @@ export default function Game({ store, account, notice: initialNotice }) {
         />
       ))}
       <Route path="/shop" element={<Shop pet={pet} onBuy={care.buy} />} />
+      <Route path="/play" element={<Play pet={pet} now={now} care={care} />} />
       <Route path="/diary" element={<Diary pet={pet} diary={diary} now={now} />} />
       <Route
         path="/settings"
