@@ -29,11 +29,7 @@ export default function AccountSection({ account }) {
       <section>
         <h2 className="text-lg font-bold">บัญชี</h2>
         <div className="mt-2 rounded-2xl border-2 border-sun bg-[#FFF6D9] p-4">
-          <p className="font-semibold">เล่นแบบ Guest</p>
-          <p className="mt-1 text-[15px] leading-relaxed text-ink/70">
-            ข้อมูลอยู่ในเครื่องนี้เท่านั้น ถ้าล้างข้อมูลเบราว์เซอร์หรือเปลี่ยนเครื่องจะหายไป
-            เข้าสู่ระบบเพื่อเก็บสัตว์เลี้ยงตัวนี้ไว้บนคลาวด์
-          </p>
+          <p className="font-semibold">เล่นแบบ Guest อยู่</p>
           <button
             type="button"
             onClick={handleSignIn}

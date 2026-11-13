@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PetAvatar from '../components/pets/PetAvatar'
 import { Coin } from '../components/TopBar'
-import { GAME } from '../config'
-import { dayKey, getLevel, getTimeOfDay } from '../petLogic'
+import { COINS, GAME } from '../config'
+import { getLevel, getTimeOfDay } from '../petLogic'
 import { getSpecies } from '../species'
 
-// ===== มินิเกม "รับขนม" =====
+// ===== มินิเกม Catch the Food =====
 // ตำแหน่งเป็น % ของสนาม
 
 const TREATS = ['🍖', '🍎', '🍪', '🥛', '🍰']
@@ -28,7 +28,7 @@ function newItem(id, progress) {
 }
 
 function newGame() {
-  return { items: [], effects: [], petX: 50, targetX: 50, score: 0, elapsed: 0, spawnIn: 0.3, nextId: 1, hurtUntil: 0 }
+  return { items: [], effects: [], petX: 50, targetX: 50, coins: 0, elapsed: 0, spawnIn: 0.3, nextId: 1, hurtUntil: 0 }
 }
 
 const card = 'toast-in mx-6 w-full max-w-[360px] rounded-3xl border-2 border-line bg-white p-6 text-center shadow-lg'
@@ -49,8 +49,6 @@ export default function Play({ pet, now, care }) {
   })
 
   const check = care.canPlay()
-  const today = dayKey(now)
-  const coinsLeft = GAME.dailyCoinCap - (pet.gameDay === today ? pet.gameCoinsToday : 0)
 
   function start() {
     if (!care.canPlay().ok) return
@@ -101,8 +99,8 @@ export default function Play({ pet, now, care }) {
         const inCatchZone = item.y >= CATCH_TOP && item.y <= CATCH_BOTTOM
         if (!item.caught && inCatchZone && Math.abs(item.x - g.petX) <= PET_W / 2) {
           item.caught = true
-          const points = GAME.points[item.kind]
-          g.score = Math.max(0, g.score + points)
+          const points = GAME.coins[item.kind]
+          g.coins = Math.max(0, g.coins + points)
           g.effects.push({ id: item.id, x: item.x, y: CATCH_TOP - 6, text: points > 0 ? `+${points}` : `${points}`, good: points > 0, at: g.elapsed })
           if (points < 0) g.hurtUntil = g.elapsed + 0.6
         }
@@ -111,8 +109,8 @@ export default function Play({ pet, now, care }) {
       g.effects = g.effects.filter((e) => g.elapsed - e.at < 0.7)
 
       if (g.elapsed >= GAME.durationSec) {
-        const reward = careRef.current.playGame(g.score)
-        setResult({ score: g.score, ...reward })
+        const reward = careRef.current.playGame(g.coins)
+        setResult({ ...reward, gameCoins: g.coins })
         setPhase('done')
         return
       }
@@ -154,7 +152,7 @@ export default function Play({ pet, now, care }) {
       onPointerMove={aim}
       className={`scene scene-${getTimeOfDay(now)} relative mx-auto h-dvh max-w-[440px] touch-none select-none overflow-hidden`}
     >
-      <h1 className="sr-only">เกมรับขนม</h1>
+      <h1 className="sr-only">Catch the Food</h1>
       <div className="sky-sun absolute right-6 top-20 h-12 w-12 rounded-full" />
       <div className="grass absolute inset-x-0 bottom-0 h-[14%] rounded-t-[50%_24px]" />
 
@@ -167,8 +165,8 @@ export default function Play({ pet, now, care }) {
           <div className="h-full rounded-full bg-sun transition-[width] duration-100" style={{ width: `${(remaining / GAME.durationSec) * 100}%` }} />
         </div>
         <span className="w-12 shrink-0 rounded-full bg-white py-1.5 text-center font-bold tabular-nums">{Math.ceil(remaining)}s</span>
-        <span className="rounded-full bg-white px-3 py-1.5 text-lg font-bold tabular-nums" aria-live="off" aria-label={`คะแนน ${g.score}`}>
-          ⭐ {g.score}
+        <span className="flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-lg font-bold tabular-nums" aria-label={`เหรียญ ${g.coins}`}>
+          <Coin size={22} /> {g.coins}
         </span>
       </div>
 
@@ -208,27 +206,23 @@ export default function Play({ pet, now, care }) {
       {phase === 'ready' && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink/30">
           <section className={card}>
-            <h2 className="text-2xl font-bold">🎮 เกมรับขนม</h2>
-            <p className="mt-2 leading-relaxed text-ink/70">เลื่อนซ้าย-ขวาให้ {pet.name} รับของที่ตกลงมา</p>
+            <h2 className="text-2xl font-bold">🎮 Catch the Food</h2>
+            <p className="mt-2 leading-relaxed text-ink/70">เลื่อนซ้าย-ขวาให้ {pet.name} รับอาหารที่ตกลงมา</p>
             <ul className="mt-3 grid grid-cols-3 gap-2 text-sm">
               <li className="rounded-xl bg-paper py-2">
                 🍖 ขนม<br />
-                <b>+{GAME.points.treat}</b>
+                <b>+{GAME.coins.treat}</b>
               </li>
               <li className="flex flex-col items-center rounded-xl bg-paper py-2">
                 <Coin size={20} /> เหรียญ
-                <b>+{GAME.points.coin}</b>
+                <b>+{GAME.coins.coin}</b>
               </li>
               <li className="rounded-xl bg-paper py-2">
                 🗑️ ขยะ<br />
-                <b className="text-berry">{GAME.points.bad}</b>
+                <b className="text-berry">{GAME.coins.bad}</b>
               </li>
             </ul>
-            <p className="mt-3 text-sm text-ink/60">
-              {GAME.durationSec} วินาที · สถิติสูงสุด {pet.bestScore} คะแนน
-              <br />
-              วันนี้รับเหรียญจากเกมได้อีก {Math.max(0, coinsLeft)} เหรียญ
-            </p>
+            <p className="mt-3 text-sm text-ink/60">{GAME.durationSec} วินาที</p>
             {check.ok ? (
               <button type="button" onClick={start} className={`${bigBtn} mt-4 border-sun-dark bg-sun`}>
                 เริ่มเล่น
@@ -257,15 +251,10 @@ export default function Play({ pet, now, care }) {
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink/30">
           <section className={card} aria-live="polite">
             <h2 className="text-2xl font-bold">หมดเวลา!</h2>
-            <p className="mt-2 text-5xl font-bold tabular-nums">⭐ {result.score}</p>
-            {result.newBest && <p className="mt-1 font-bold text-sun-dark">🏆 สถิติใหม่!</p>}
+            <p className="mt-2 flex items-center justify-center gap-2 text-5xl font-bold tabular-nums">
+              +{result.gameCoins} <Coin size={44} />
+            </p>
             <ul className="mt-4 space-y-1.5 text-left">
-              <li className="flex items-center justify-between rounded-xl bg-paper px-3 py-2">
-                <span>เหรียญที่ได้</span>
-                <span className="flex items-center gap-1 font-bold">
-                  +{result.coins} <Coin size={18} />
-                </span>
-              </li>
               <li className="flex items-center justify-between rounded-xl bg-paper px-3 py-2">
                 <span>😊 ความสุข / 🌙 พลังงาน</span>
                 <span className="font-bold">
@@ -277,8 +266,11 @@ export default function Play({ pet, now, care }) {
                 <span className="font-bold">+{result.exp}</span>
               </li>
             </ul>
-            {result.levelUp && <p className="mt-2 font-bold text-sun-dark">เลเวลอัป! ตอนนี้ Lv.{result.levelUp}</p>}
-            {result.capReached && <p className="mt-2 text-sm text-ink/60">วันนี้รับเหรียญจากเกมครบ {GAME.dailyCoinCap} แล้ว พรุ่งนี้มาใหม่นะ</p>}
+            {result.levelUp && (
+              <p className="mt-2 font-bold text-sun-dark">
+                เลเวลอัป! ตอนนี้ Lv.{result.levelUp} (+{COINS.levelUp} เหรียญ)
+              </p>
+            )}
             <div className="mt-4 grid grid-cols-2 gap-2">
               <Link to="/" className={`${bigBtn} block bg-white`}>
                 กลับ

@@ -61,12 +61,10 @@ export const COINS = {
   daily: 20, // โบนัสรายวัน
 }
 
-// ===== มินิเกมรับขนม =====
+// ===== มินิเกม Catch the Food =====
 export const GAME = {
   durationSec: 30,
-  points: { treat: 1, coin: 3, bad: -2 }, // ขนม / เหรียญ / ขยะ
-  coinsPerPoint: 1, // เหรียญต่อคะแนน
-  dailyCoinCap: 100, // เหรียญจากเกมสูงสุดต่อวัน
+  coins: { treat: 1, coin: 3, bad: -2 }, // ขนม / เหรียญ / ขยะ
   fun: 15, // ความสุขที่เพิ่ม
   energyCost: 10, // พลังงานที่ใช้
   minEnergy: 20, // พลังงานขั้นต่ำที่เล่นได้

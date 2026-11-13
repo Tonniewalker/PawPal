@@ -260,7 +260,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
 
         {/* ===== ของในแต่ละห้อง ===== */}
         {room === 'living' && (
-          <Link to="/play" aria-label="เล่นมินิเกมรับขนม" className={`absolute bottom-[15%] left-4 z-10 bg-[#7CCB5E] ${roundBtn}`}>
+          <Link to="/play" aria-label="เล่นมินิเกม Catch the Food" className={`absolute bottom-[15%] left-4 z-10 bg-[#7CCB5E] ${roundBtn}`}>
             🎮
           </Link>
         )}

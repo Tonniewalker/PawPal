@@ -158,10 +158,10 @@ export default function Game({ store, account, notice: initialNotice }) {
     return applyTime(petRef.current, Date.now())
   }
 
-  function applyCare(base, { add = {}, set = {}, exp = 0, bonusCoins = 0, entries = [] }) {
+  function applyCare(base, { add = {}, set = {}, exp = 0, expCoins = true, bonusCoins = 0, entries = [] }) {
     const before = getLevel(base.exp).level
     const after = getLevel(base.exp + exp).level
-    const coins = Math.ceil(exp * COINS.perExp) + (after - before) * COINS.levelUp + bonusCoins
+    const coins = (expCoins ? Math.ceil(exp * COINS.perExp) : 0) + (after - before) * COINS.levelUp + bonusCoins
 
     const next = { ...base, ...set, exp: base.exp + exp, coins: base.coins + coins }
     for (const [key, amount] of Object.entries(add)) next[key] = Math.min(100, Math.max(0, base[key] + amount))
@@ -196,20 +196,15 @@ export default function Game({ store, account, notice: initialNotice }) {
       return { ok: true }
     },
     // มินิเกม: รับรางวัล
-    playGame(score) {
+    playGame(gameCoins) {
       const p = current()
-      const today = dayKey(Date.now())
-      const earnedToday = p.gameDay === today ? p.gameCoinsToday : 0
-      const gameCoins = Math.max(0, Math.min(score * GAME.coinsPerPoint, GAME.dailyCoinCap - earnedToday))
-      const best = score > p.bestScore
-      const result = applyCare(p, {
+      return applyCare(p, {
         add: { fun: GAME.fun, energy: -GAME.energyCost },
-        set: { bestScore: Math.max(p.bestScore, score), gameDay: today, gameCoinsToday: earnedToday + gameCoins },
         exp: GAME.exp,
+        expCoins: false,
         bonusCoins: gameCoins,
-        entries: [['game', `เล่นเกมรับขนม ได้ ${score} คะแนน (+${gameCoins} เหรียญ)`]],
+        entries: [['game', `เล่น Catch the Food ได้ ${gameCoins} เหรียญ`]],
       })
-      return { ...result, gameCoins, newBest: best, capReached: earnedToday + gameCoins >= GAME.dailyCoinCap }
     },
     // ร้านค้า: ซื้ออาหาร
     buy(foodKey) {

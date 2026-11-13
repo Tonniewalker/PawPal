@@ -23,9 +23,6 @@ export function createPet({ name, species = DEFAULT_SPECIES }, now) {
     coins: START_COINS,
     inventory: { ...STARTER_FOODS }, // อาหารที่มี
     lastBonusDay: null, // วันที่รับโบนัสรายวันล่าสุด
-    bestScore: 0, // คะแนนสูงสุดมินิเกม
-    gameDay: null, // วันที่เล่นมินิเกมล่าสุด
-    gameCoinsToday: 0, // เหรียญจากมินิเกมในวันนั้น
     adoptedAt: now,
     lastUpdated: now, // เวลาที่คำนวณค่าสถานะล่าสุด
   }
@@ -42,6 +39,10 @@ export function normalizePet(raw) {
     pet.food = (pet.food + pet.water) / 2
     delete pet.water
   }
+  // ฟิลด์ที่เลิกใช้
+  delete pet.bestScore
+  delete pet.gameDay
+  delete pet.gameCoinsToday
   return {
     ...pet,
     version: DATA_VERSION,
@@ -52,9 +53,6 @@ export function normalizePet(raw) {
     coins: Math.max(0, Math.floor(num(pet.coins, START_COINS))),
     inventory: normalizeInventory(pet.inventory ?? STARTER_FOODS),
     lastBonusDay: typeof pet.lastBonusDay === 'string' ? pet.lastBonusDay : null,
-    bestScore: Math.max(0, Math.floor(num(pet.bestScore, 0))),
-    gameDay: typeof pet.gameDay === 'string' ? pet.gameDay : null,
-    gameCoinsToday: Math.max(0, Math.floor(num(pet.gameCoinsToday, 0))),
     adoptedAt: num(pet.adoptedAt, pet.lastUpdated),
   }
 }

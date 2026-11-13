@@ -50,7 +50,7 @@ export default function Shop({ pet, onBuy }) {
 
       {tab === 'clothes' ? (
         <p className="mx-5 mt-8 rounded-2xl border-2 border-dashed border-line p-6 text-center text-ink/60">
-          🔒 ชุดแต่งตัวเปิดขายเร็ว ๆ นี้
+          🔒 ชุดแต่งตัว Open Soon
         </p>
       ) : (
         <ul className="mx-5 mt-4 grid grid-cols-2 gap-3">
