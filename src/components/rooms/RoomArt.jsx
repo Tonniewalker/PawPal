@@ -93,13 +93,7 @@ export function LivingBack({ time }) {
 }
 
 export function LivingFront() {
-  return (
-    <g>
-      {/* ลูกบอล */}
-      <circle cx="336" cy="648" r="20" fill="#E5484D" />
-      <path d="M318 642 Q336 652 354 642" fill="none" stroke="#fff" strokeWidth="5" />
-    </g>
-  )
+  return null
 }
 
 // ---------- ห้องครัว ----------

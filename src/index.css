@@ -59,6 +59,7 @@ body {
   }
   .tail-wag.fast { animation-duration: 0.28s; }
   .dog-hop { animation: hop 0.45s ease-out; }
+  .pet-run { animation: run-bounce 0.26s ease-in-out infinite alternate; }
   .heart-float {
     transform-box: fill-box;
     animation: heart 1.8s ease-in-out infinite;
@@ -82,6 +83,10 @@ body {
   0% { transform: translateY(0); }
   40% { transform: translateY(-16px); }
   100% { transform: translateY(0); }
+}
+@keyframes run-bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-12px); }
 }
 @keyframes heart {
   0%, 100% { transform: translateY(0); opacity: 1; }

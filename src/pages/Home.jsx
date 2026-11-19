@@ -4,7 +4,9 @@ import BottomNav from '../components/BottomNav'
 import TopBar, { Coin } from '../components/TopBar'
 import PetAvatar from '../components/pets/PetAvatar'
 import { PLATE_X, PLATE_Y, ROOMS } from '../components/rooms'
+import ThrowToy from '../components/rooms/ThrowToy'
 import { isInside, useDrag } from '../components/rooms/useDrag'
+import { useFetch } from '../components/rooms/useFetch'
 import { FOODS, PAT, STATS, WASH } from '../config'
 import { foodCount, formatDuration, getLevel, getMood, getStage, getTimeOfDay } from '../petLogic'
 import { getSpecies } from '../species'
@@ -69,11 +71,21 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
   }
 
   // ===== ห้องนั่งเล่น =====
+  const sceneRef = useRef(null)
+  const fetchToy = useFetch({ active: room === 'living', onDone: () => react(care.fetchToy()) })
+
+  function canGrabToy() {
+    if (fetchToy.busy) return false
+    const check = care.canFetch()
+    if (!check.ok) speak(check.say)
+    return check.ok
+  }
+
   const rubRef = useRef(null)
   const [hand, setHand] = useState(null)
 
   function rubStart(e) {
-    if (room !== 'living') return
+    if (room !== 'living' || fetchToy.busy) return
     e.currentTarget.setPointerCapture(e.pointerId)
     rubRef.current = { x: e.clientX, y: e.clientY, dist: 0, moved: 0, times: 0, stopped: false }
     setHand({ x: e.clientX, y: e.clientY })
@@ -196,7 +208,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
       <h1 className="sr-only">{R.name}</h1>
 
       {/* ===== ฉาก ===== */}
-      <div className="absolute inset-x-0 bottom-0" style={{ aspectRatio: '390 / 760' }}>
+      <div ref={sceneRef} className="absolute inset-x-0 bottom-0" style={{ aspectRatio: '390 / 760' }}>
         <svg viewBox="0 0 390 760" className="absolute inset-0 h-full w-full" aria-hidden="true">
           <R.Back time={time} />
         </svg>
@@ -204,8 +216,13 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
         {/* ตัวน้อง */}
         <div
           ref={petBoxRef}
-          className={`absolute left-1/2 flex -translate-x-1/2 items-end justify-center ${room === 'living' ? 'cursor-grab touch-none' : ''}`}
-          style={{ bottom: `${R.pet.bottom}%`, width: `${R.pet.width}%` }}
+          className={`absolute flex -translate-x-1/2 items-end justify-center ${room === 'living' ? 'cursor-grab touch-none' : ''}`}
+          style={{
+            left: pctX(fetchToy.pos.x),
+            transition: `left ${fetchToy.pos.ms}ms linear`,
+            bottom: `${R.pet.bottom}%`,
+            width: `${R.pet.width}%`,
+          }}
           onPointerDown={rubStart}
           onPointerMove={rubMove}
           onPointerUp={rubEnd}
@@ -215,19 +232,28 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
           tabIndex={room === 'living' ? 0 : undefined}
           aria-label={room === 'living' ? `ลูบตัว${pet.name}` : undefined}
         >
-          <PetAvatar
-            species={pet.species}
-            face={face}
-            level={level}
-            scale={stage.scale}
-            hopKey={hopKey}
-            emoji={mood.emoji}
-            moodLabel={mood.label}
-            label={`${species.label} ${pet.name}`}
-            dirt={dirt}
-            bubbles={room === 'bathroom' ? bubbles : []}
-            say={say}
-          />
+          {/* เอียงตัวตอนวิ่ง */}
+          <div
+            className="flex w-full items-end justify-center transition-transform duration-200"
+            style={{ transform: `rotate(${fetchToy.running ? fetchToy.dir * 7 : 0}deg)`, transformOrigin: '50% 100%' }}
+          >
+            <div className={`flex w-full items-end justify-center ${fetchToy.running ? 'pet-run' : ''}`}>
+              <PetAvatar
+                species={pet.species}
+                face={face}
+                level={level}
+                scale={stage.scale}
+                hopKey={hopKey}
+                emoji={mood.emoji}
+                moodLabel={mood.label}
+                label={`${species.label} ${pet.name}`}
+                dirt={dirt}
+                bubbles={room === 'bathroom' ? bubbles : []}
+                say={say}
+                carry={fetchToy.carrying ? pet.species : null}
+              />
+            </div>
+          </div>
 
           {/* +EXP ลอยขึ้น */}
           {pops.map((p) => (
@@ -259,6 +285,18 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
         </svg>
 
         {/* ===== ของในแต่ละห้อง ===== */}
+        {room === 'living' && (
+          <ThrowToy
+            species={pet.species}
+            label={`${species.toy}ของ${pet.name}`}
+            sceneRef={sceneRef}
+            canGrab={canGrabToy}
+            hidden={fetchToy.toyHidden}
+            resetKey={fetchToy.toyKey}
+            onThrown={fetchToy.onThrown}
+          />
+        )}
+
         {room === 'living' && (
           <Link to="/play" aria-label="เล่นมินิเกม Catch the Food" className={`absolute bottom-[15%] left-4 z-10 bg-[#7CCB5E] ${roundBtn}`}>
             🎮

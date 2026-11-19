@@ -61,6 +61,14 @@ export const COINS = {
   daily: 20, // โบนัสรายวัน
 }
 
+// ===== ของเล่นในห้องนั่งเล่น =====
+export const TOY = {
+  fun: 6, // ความสุขที่เพิ่ม
+  energyCost: 3, // พลังงานที่ใช้
+  minEnergy: 15, // พลังงานขั้นต่ำที่ยอมไปเก็บ
+  exp: 5,
+}
+
 // ===== มินิเกม Catch the Food =====
 export const GAME = {
   durationSec: 30,

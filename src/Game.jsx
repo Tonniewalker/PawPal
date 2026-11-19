@@ -8,7 +8,8 @@ import Diary from './pages/Diary'
 import Settings from './pages/Settings'
 import Play from './pages/Play'
 import Shop from './pages/Shop'
-import { AWAY_NOTICE_MS, COINS, DIARY_LIMIT, FOODS, FULL, GAME, PAT, SLEEP, WASH } from './config'
+import { AWAY_NOTICE_MS, COINS, DIARY_LIMIT, FOODS, FULL, GAME, PAT, SLEEP, TOY, WASH } from './config'
+import { getSpecies } from './species'
 import { applyTime, createPet, dayKey, foodCount, formatDuration, getLevel, HOUR, makeDiaryEntry, MINUTE } from './petLogic'
 
 // บันทึกโดยไม่รอผล
@@ -224,6 +225,22 @@ export default function Game({ store, account, notice: initialNotice }) {
     // บันทึกการลูบลงสมุด
     logPat(times) {
       addDiary(makeDiaryEntry('pat', `ลูบตัว ${times} ครั้ง`))
+    },
+    // ห้องนั่งเล่น: เช็กก่อนโยนของเล่น
+    canFetch() {
+      const p = current()
+      if (p.asleep) return ASLEEP
+      if (p.energy < TOY.minEnergy) return { ok: false, say: 'เหนื่อยแล้ว 😴' }
+      return { ok: true }
+    },
+    // ห้องนั่งเล่น: คาบของเล่นกลับมา
+    fetchToy() {
+      const p = current()
+      return applyCare(p, {
+        add: { fun: TOY.fun, energy: -TOY.energyCost },
+        exp: TOY.exp,
+        entries: [['toy', `คาบ${getSpecies(p.species).toy}กลับมา`]],
+      })
     },
     // ห้องน้ำ: เช็กก่อนเริ่มถูสบู่
     canWash() {

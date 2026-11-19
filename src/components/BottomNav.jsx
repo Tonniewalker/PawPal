@@ -30,8 +30,8 @@ export default function BottomNav({ pet }) {
   })
 
   return (
-    <nav className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-white/95 via-white/80 to-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-8">
-      <ul className="flex justify-around">
+    <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-white/95 via-white/80 to-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-8">
+      <ul className="pointer-events-auto flex justify-around">
         <li>
           <NavLink to="/shop" className="flex flex-col items-center gap-1" aria-label="ร้านค้า">
             <Gauge icon="🛒" />

@@ -16,3 +16,7 @@ export const gaugeColor = (v) => (v >= 60 ? '#7CCB5E' : v >= 30 ? '#FFC93C' : '#
 // ตำแหน่งจานบนโต๊ะครัว
 export const PLATE_X = [85, 195, 305]
 export const PLATE_Y = 624
+
+// ของเล่นในห้องนั่งเล่น: จุดกลางตอนวางอยู่ + ขนาด
+export const TOY_REST = { x: 330, y: 630 }
+export const TOY_SIZE = 60

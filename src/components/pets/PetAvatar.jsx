@@ -1,3 +1,4 @@
+import { ToyShape } from '../Toy'
 import { getPetBody } from './index'
 import { Hearts } from './parts'
 
@@ -6,8 +7,8 @@ const DIRT_SPOTS = [
   [76, 150], [124, 162], [100, 180], [133, 136], [66, 126], [110, 143],
 ]
 
-// กรอบสัตว์เลี้ยง: ลูกโป่งคำพูด เงา หัวใจ คราบ ฟองสบู่
-export default function PetAvatar({ species, face = 'normal', level = 1, scale = 1, hopKey = 0, emoji, moodLabel, label, dirt = 0, bubbles = [], say }) {
+// กรอบสัตว์เลี้ยง: ลูกโป่งคำพูด เงา หัวใจ คราบ ฟองสบู่ ของเล่นที่คาบ
+export default function PetAvatar({ species, face = 'normal', level = 1, scale = 1, hopKey = 0, emoji, moodLabel, label, dirt = 0, bubbles = [], say, carry }) {
   const Body = getPetBody(species)
   const spots = Math.ceil(dirt * DIRT_SPOTS.length)
 
@@ -17,8 +18,8 @@ export default function PetAvatar({ species, face = 'normal', level = 1, scale =
       {(say || emoji) && (
         <div
           key={say ?? emoji}
-          className={`toast-in absolute bottom-[80%] left-[70%] z-10 whitespace-nowrap rounded-2xl bg-white px-2 py-1 leading-none shadow-[0_3px_0_rgba(46,58,89,0.12)] ${
-            say ? 'text-[15px] font-semibold' : 'text-[26px]'
+          className={`toast-in absolute bottom-[80%] left-[70%] z-10 rounded-2xl bg-white px-2 py-1 shadow-[0_3px_0_rgba(46,58,89,0.12)] ${
+            say ? 'w-max max-w-[8.5rem] text-[15px] font-semibold leading-tight' : 'whitespace-nowrap text-[26px] leading-none'
           }`}
           role={say ? 'status' : 'img'}
           aria-label={say ? undefined : moodLabel}
@@ -37,6 +38,11 @@ export default function PetAvatar({ species, face = 'normal', level = 1, scale =
         {bubbles.map((b, i) => (
           <circle key={i} cx={b.x} cy={b.y} r={b.r ?? 8} fill="rgba(255,255,255,0.85)" stroke="#9FD3EA" strokeWidth="2" />
         ))}
+        {carry && (
+          <g transform="translate(100 114) scale(1.1)">
+            <ToyShape species={carry} />
+          </g>
+        )}
         {face === 'happy' && <Hearts />}
       </svg>
     </div>

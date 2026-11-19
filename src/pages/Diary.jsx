@@ -15,6 +15,7 @@ const ICONS = {
   levelup: '⭐',
   bonus: '🎁',
   game: '🎮',
+  toy: '🧸',
   rename: '✏️',
   return: '👋',
 }

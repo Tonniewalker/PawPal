@@ -5,6 +5,7 @@ import { DEFAULT_SPECIES } from './config'
 export const SPECIES = {
   dog: {
     id: 'dog',
+    toy: 'กระดูก', // ของเล่น
     noun: 'หมา', // ใช้ในชื่อช่วงวัย
     label: 'น้องหมา',
     emoji: '🐶',
@@ -14,6 +15,7 @@ export const SPECIES = {
   },
   cat: {
     id: 'cat',
+    toy: 'ไหมพรม', // ของเล่น
     noun: 'แมว',
     label: 'น้องแมว',
     emoji: '🐱',
@@ -23,6 +25,7 @@ export const SPECIES = {
   },
   rabbit: {
     id: 'rabbit',
+    toy: 'แครอทยาง', // ของเล่น
     noun: 'กระต่าย',
     label: 'น้องกระต่าย',
     emoji: '🐰',
@@ -32,6 +35,7 @@ export const SPECIES = {
   },
   fox: {
     id: 'fox',
+    toy: 'เนื้อ', // ของเล่น
     noun: 'จิ้งจอก',
     label: 'น้องจิ้งจอก',
     emoji: '🦊',
@@ -41,6 +45,7 @@ export const SPECIES = {
   },
   bird: {
     id: 'bird',
+    toy: 'ลูกบอลเล็ก', // ของเล่น
     noun: 'นก',
     label: 'น้องนก',
     emoji: '🐦',
