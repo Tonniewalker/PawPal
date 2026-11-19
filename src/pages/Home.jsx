@@ -197,6 +197,8 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
 
   // ===== ห้องนอน =====
   const sleepingHere = room === 'bedroom' && pet.asleep
+  // หลับอยู่ = อยู่แค่ห้องนอน
+  const away = pet.asleep && room !== 'bedroom'
 
   const species = getSpecies(pet.species)
   const face = nearMouth && !pet.asleep ? 'hungry' : mood.face
@@ -214,78 +216,87 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
         </svg>
 
         {/* ตัวน้อง */}
-        <div
-          ref={petBoxRef}
-          className={`absolute flex -translate-x-1/2 items-end justify-center ${room === 'living' ? 'cursor-grab touch-none' : ''}`}
-          style={{
-            left: pctX(fetchToy.pos.x),
-            transition: `left ${fetchToy.pos.ms}ms linear`,
-            bottom: `${R.pet.bottom}%`,
-            width: `${R.pet.width}%`,
-          }}
-          onPointerDown={rubStart}
-          onPointerMove={rubMove}
-          onPointerUp={rubEnd}
-          onPointerCancel={rubEnd}
-          onKeyDown={rubKey}
-          role={room === 'living' ? 'button' : undefined}
-          tabIndex={room === 'living' ? 0 : undefined}
-          aria-label={room === 'living' ? `ลูบตัว${pet.name}` : undefined}
-        >
-          {/* เอียงตัวตอนวิ่ง */}
-          <div
-            className="flex w-full items-end justify-center transition-transform duration-200"
-            style={{ transform: `rotate(${fetchToy.running ? fetchToy.dir * 7 : 0}deg)`, transformOrigin: '50% 100%' }}
+        {away ? (
+          <Link
+            to="/bedroom"
+            className="absolute bottom-[30%] left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-white/90 px-4 py-2 font-semibold shadow-[0_3px_0_rgba(46,58,89,0.12)]"
           >
-            <div className={`flex w-full items-end justify-center ${fetchToy.running ? 'pet-run' : ''}`}>
-              <PetAvatar
-                species={pet.species}
-                face={face}
-                level={level}
-                scale={stage.scale}
-                hopKey={hopKey}
-                emoji={mood.emoji}
-                moodLabel={mood.label}
-                label={`${species.label} ${pet.name}`}
-                dirt={dirt}
-                bubbles={room === 'bathroom' ? bubbles : []}
-                say={say}
-                carry={fetchToy.carrying ? pet.species : null}
-              />
-            </div>
-          </div>
-
-          {/* +EXP ลอยขึ้น */}
-          {pops.map((p) => (
-            <span
-              key={p.id}
-              className="pop-up pointer-events-none absolute left-1/2 top-[15%] flex items-center gap-1 whitespace-nowrap text-lg font-bold text-sun-dark drop-shadow"
+            💤 {pet.name}หลับอยู่ในห้องนอน
+          </Link>
+        ) : (
+          <div
+            ref={petBoxRef}
+            className={`absolute flex -translate-x-1/2 items-end justify-center ${room === 'living' ? 'cursor-grab touch-none' : ''}`}
+            style={{
+              left: pctX(fetchToy.pos.x),
+              transition: `left ${fetchToy.pos.ms}ms linear`,
+              bottom: `${R.pet.bottom}%`,
+              width: `${R.pet.width}%`,
+            }}
+            onPointerDown={rubStart}
+            onPointerMove={rubMove}
+            onPointerUp={rubEnd}
+            onPointerCancel={rubEnd}
+            onKeyDown={rubKey}
+            role={room === 'living' ? 'button' : undefined}
+            tabIndex={room === 'living' ? 0 : undefined}
+            aria-label={room === 'living' ? `ลูบตัว${pet.name}` : undefined}
+          >
+            {/* เอียงตัวตอนวิ่ง */}
+            <div
+              className="flex w-full items-end justify-center transition-transform duration-200"
+              style={{ transform: `rotate(${fetchToy.running ? fetchToy.dir * 7 : 0}deg)`, transformOrigin: '50% 100%' }}
             >
-              {p.exp > 0 && <span>+{p.exp} EXP</span>}
-              {p.coins > 0 && (
-                <span className="flex items-center gap-0.5">
-                  +{p.coins} <Coin size={18} />
-                </span>
-              )}
-            </span>
-          ))}
-
-          {/* น้ำจากฝักบัว */}
-          {showering && (
-            <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-              {[8, 22, 36, 50, 64, 78, 90].map((left, i) => (
-                <span key={left} className="shower-drop" style={{ left: `${left}%`, animationDelay: `${i * 0.08}s` }} />
-              ))}
+              <div className={`flex w-full items-end justify-center ${fetchToy.running ? 'pet-run' : ''}`}>
+                <PetAvatar
+                  species={pet.species}
+                  face={face}
+                  level={level}
+                  scale={stage.scale}
+                  hopKey={hopKey}
+                  emoji={mood.emoji}
+                  moodLabel={mood.label}
+                  label={`${species.label} ${pet.name}`}
+                  dirt={dirt}
+                  bubbles={room === 'bathroom' ? bubbles : []}
+                  say={say}
+                  carry={fetchToy.carrying ? pet.species : null}
+                />
+              </div>
             </div>
-          )}
-        </div>
+
+            {/* +EXP ลอยขึ้น */}
+            {pops.map((p) => (
+              <span
+                key={p.id}
+                className="pop-up pointer-events-none absolute left-1/2 top-[15%] flex items-center gap-1 whitespace-nowrap text-lg font-bold text-sun-dark drop-shadow"
+              >
+                {p.exp > 0 && <span>+{p.exp} EXP</span>}
+                {p.coins > 0 && (
+                  <span className="flex items-center gap-0.5">
+                    +{p.coins} <Coin size={18} />
+                  </span>
+                )}
+              </span>
+            ))}
+
+            {/* น้ำจากฝักบัว */}
+            {showering && (
+              <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+                {[8, 22, 36, 50, 64, 78, 90].map((left, i) => (
+                  <span key={left} className="shower-drop" style={{ left: `${left}%`, animationDelay: `${i * 0.08}s` }} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <svg viewBox="0 0 390 760" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
           <R.Front time={time} lightsOn={!pet.asleep} />
         </svg>
 
         {/* ===== ของในแต่ละห้อง ===== */}
-        {room === 'living' && (
+        {room === 'living' && !away && (
           <ThrowToy
             species={pet.species}
             label={`${species.toy}ของ${pet.name}`}
@@ -303,7 +314,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
           </Link>
         )}
 
-        {room === 'kitchen' && (
+        {room === 'kitchen' && !away && (
           <>
             {trayKeys.map((key, i) => {
               const f = FOODS[key]
@@ -367,7 +378,7 @@ export default function Home({ room, pet, now, care, welcome, onDismissWelcome, 
           </>
         )}
 
-        {room === 'bathroom' && (
+        {room === 'bathroom' && !away && (
           <>
             <button
               type="button"
